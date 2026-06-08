@@ -109,32 +109,32 @@ font:
     glyphs: "123"
 
 image:
-  - file: src/assets/images/milk.png
+  - file: smart-home-button/src/assets/images/milk.png
     id: img_fridge_milk
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: src/assets/images/egg.png
+  - file: smart-home-button/src/assets/images/egg.png
     id: img_fridge_eggs
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: src/assets/images/bread.png
+  - file: smart-home-button/src/assets/images/bread.png
     id: img_fridge_bread
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: src/assets/images/warning.png
+  - file: smart-home-button/src/assets/images/warning.png
     id: img_fridge_warn_icon
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: src/assets/images/safe.png
+  - file: smart-home-button/src/assets/images/safe.png
     id: img_fridge_safe_icon
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
-  - file: src/assets/images/danger.png
+  - file: smart-home-button/src/assets/images/danger.png
     id: img_fridge_exp_icon
     type: RGB565
     transparency: alpha_channel

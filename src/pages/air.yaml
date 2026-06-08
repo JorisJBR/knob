@@ -24,37 +24,37 @@ font:
     glyphs: "\xc2\xb0"
 
 image:
-  - file: src/assets/images/air_page/fan_off.png
+  - file: smart-home-button/src/assets/images/air_page/fan_off.png
     id: img_air_fan_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: src/assets/images/air_page/fan_on.png
+  - file: smart-home-button/src/assets/images/air_page/fan_on.png
     id: img_air_fan_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: src/assets/images/air_page/power_off.png
+  - file: smart-home-button/src/assets/images/air_page/power_off.png
     id: img_air_power_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: src/assets/images/air_page/power_on.png
+  - file: smart-home-button/src/assets/images/air_page/power_on.png
     id: img_air_power_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: src/assets/images/air_page/swing_off.png
+  - file: smart-home-button/src/assets/images/air_page/swing_off.png
     id: img_air_swing_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: src/assets/images/air_page/swing_on.png
+  - file: smart-home-button/src/assets/images/air_page/swing_on.png
     id: img_air_swing_on
     type: RGB565
     transparency: alpha_channel
@@ -261,9 +261,9 @@ lvgl:
             align: TOP_LEFT
             x: 0
             y: 0
-            width: 240
-            height: 240
-            radius: 120
+            width: 480
+            height: 480
+            radius: 240
             clip_corner: true
             bg_color: col_air_bg
             bg_opa: COVER
@@ -274,9 +274,9 @@ lvgl:
               - obj:
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
-                  radius: 110
+                  width: 440
+                  height: 440
+                  radius: 220
                   bg_color: col_air_inner
                   bg_opa: COVER
                   border_width: 0

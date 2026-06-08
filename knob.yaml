@@ -1,22 +1,44 @@
 packages:
-  hardware:    !include src/main/hardware.yaml
-  entities:    !include src/main/entities.yaml
-  load_page:   !include src/pages/load.yaml
-  clock_page:  !include src/pages/main.yaml
-  menu_page:   !include src/pages/menu.yaml
-  light_page:  !include src/pages/light.yaml
-  air_page:    !include src/pages/air.yaml
-  music_page:  !include src/pages/music.yaml
-  fridge_page: !include src/pages/fridge.yaml
-  timer_page:  !include src/pages/timer.yaml
+  hardware:    !include smart-home-button/src/main/hardware-crowpanel-2_1.yaml
+  clock_page:  !include smart-home-button/src/pages/main.yaml
+  load_page:   !include smart-home-button/src/pages/load.yaml
+  menu_page:   !include smart-home-button/src/pages/menu.yaml
+  light_page:  !include smart-home-button/src/pages/light.yaml
+  air_page:    !include smart-home-button/src/pages/air.yaml
+  music_page:  !include smart-home-button/src/pages/music.yaml
+  fridge_page: !include smart-home-button/src/pages/fridge.yaml
+  timer_page:  !include smart-home-button/src/pages/timer.yaml
+
+substitutions:
+  # Change these to match your Home Assistant instance before flashing.
+  weather_entity: weather.buienradar
+  climate_entity: climate.airco_beneden
+  music_player_entity: media_player.woonkamer
+  light_entity: light.spots_woonkamer
 
 esphome:
-  name: m5stack-dialv1
-  friendly_name: M5Stack Dial
+  name: knob
+  friendly_name: Knob
+  platformio_options:
+    build_flags: "-DBOARD_HAS_PSRAM"
+    board_build.esp-idf.memory_type: qio_opi
+    board_build.flash_mode: dio
   on_boot:
+  # Bring up panel power before toggling RESET, then small delays. Based on Elecrow sample code, though colors are off
     - priority: 800
       then:
-        - switch.turn_on: power_hold
+        - output.turn_on: lcd_power
+        - output.turn_on: display_reset
+        - delay: 100ms
+        - output.turn_off: display_reset
+        - delay: 100ms
+        - output.turn_on: tp_reset
+        - delay: 100ms
+        - output.turn_off: tp_reset
+        - delay: 120ms
+        - output.turn_on: tp_reset
+        - delay: 120ms
+        - output.turn_on: tp_intr
     - priority: -100
       then:
         - pcf8563.read_time:
@@ -26,16 +48,23 @@ esphome:
         - script.execute: update_loading_page
 
 esp32:
-  board: m5stack-stamps3
-  variant: esp32s3
+  board: esp32-s3-devkitc-1
   framework:
     type: esp-idf
     sdkconfig_options:
-      CONFIG_BROWNOUT_DET: "n"
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
+      CONFIG_ESP32S3_DATA_CACHE_64KB: y
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
+      CONFIG_SPIRAM_RODATA: y
 
+# Enable logging
 logger:
   level: INFO
 
+debug:
+  update_interval: 30s
+
+# Enable Home Assistant API
 api:
   encryption:
     key: !secret api_encryption_key
@@ -45,6 +74,7 @@ api:
           lambda: 'return (0 == client_info.find("Home Assistant "));'
         then:
           - script.execute: on_ha_connected
+      
   on_client_disconnected:
     - if:
         condition:
@@ -64,6 +94,10 @@ wifi:
   ap:
     ssid: !secret ap_ssid
     password: !secret ap_password
+
+# external_components:
+#   - source: github://sEbola76/Makerfabs
+#     components: [ cst826 ]
 
 captive_portal:
 
@@ -134,3 +168,4 @@ lvgl:
   color_depth: 16
   bg_color: col_bg
   default_font: font_lbl
+  

@@ -1,26 +1,25 @@
-
 font:
   - file: "gfonts://DM+Sans"
     id: font_clock
-    size: 60
+    size: 120
     bpp: 4
     glyphs: "0123456789: "
 
   - file: "gfonts://DM+Sans"
     id: font_date
-    size: 14
+    size: 28
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 /.-"
 
   - file: "gfonts://DM+Sans"
     id: font_val
-    size: 18
+    size: 36
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-%°/"
 
   - file: "gfonts://DM+Sans"
     id: font_val_s
-    size: 15
+    size: 30
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-%°/"
 
@@ -29,7 +28,7 @@ font:
       weight: 700
       type: gfonts
     id: font_lbl
-    size: 11
+    size: 22
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
 
@@ -38,7 +37,7 @@ font:
       weight: 700
       type: gfonts
     id: font_lbl_s
-    size: 9
+    size: 18
     bpp: 4
     glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
 
@@ -69,7 +68,7 @@ time:
     id: rtctime
     i2c_id: internal_i2c
     address: 0x51
-    timezone: Asia/Shanghai
+    timezone: Europe/Amsterdam 
     update_interval: never
     on_time:
       - seconds: 0
@@ -97,7 +96,7 @@ time:
 
   - platform: homeassistant
     id: esptime
-    timezone: Asia/Shanghai
+    timezone: Europe/Amsterdam 
     on_time_sync:
       then:
         - pcf8563.write_time:
@@ -138,58 +137,13 @@ sensor:
   - platform: rotary_encoder
     id: encoder
     pin_a:
-      number: GPIO40
+      number: GPIO42
       mode: INPUT_PULLUP
     pin_b:
-      number: GPIO41
+      number: GPIO4
       mode: INPUT_PULLUP
     resolution: 4
     on_clockwise:
-      - if:
-          condition:
-            lambda: 'return id(in_colorpicker);'
-          then:
-            - script.execute: light_hue_up
-      - if:
-          condition:
-            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
-          then:
-            - script.execute: light_brightness_up
-      - if:
-          condition:
-            lambda: 'return id(in_air) && !id(in_menu);'
-          then:
-            - lambda: |-
-                id(air_encoder_step_accum) += 1;
-                if (id(air_encoder_step_accum) >= 4) {
-                  id(air_encoder_step_accum) = 0;
-                  if (id(air_mode) == 0) {
-                    id(air_temp_up).execute();
-                  } else {
-                    id(air_fan_up).execute();
-                  }
-                }
-      - if:
-          condition:
-            lambda: 'return id(in_music);'
-          then:
-            - script.execute: music_volume_up
-      - if:
-          condition:
-            lambda: 'return id(in_menu);'
-          then:
-            - script.execute: menu_scroll_down
-      - if:
-          condition:
-            lambda: 'return id(in_fridge);'
-          then:
-            - script.execute: fridge_scroll_down
-      - if:
-          condition:
-            lambda: 'return id(in_timer);'
-          then:
-            - script.execute: timer_encoder_up
-    on_anticlockwise:
       - if:
           condition:
             lambda: 'return id(in_colorpicker);'
@@ -234,6 +188,53 @@ sensor:
             lambda: 'return id(in_timer);'
           then:
             - script.execute: timer_encoder_down
+    on_anticlockwise:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_up
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_up
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) += 1;
+                if (id(air_encoder_step_accum) >= 4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_up).execute();
+                  } else {
+                    id(air_fan_up).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_up
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_up
+
+
 
   - platform: homeassistant
     id: ha_temperature
@@ -266,7 +267,7 @@ sensor:
   - platform: homeassistant
     id: ha_aqi
     entity_id: ${weather_entity}
-    attribute: aqi
+    attribute: state
     internal: true
     on_value:
       then:
@@ -305,16 +306,17 @@ sensor:
               sprintf(buf, "%.0fkm/h", x);
               return buf;
 
+# Front button
 binary_sensor:
   - platform: gpio
     name: Button
     id: front_button
     pin:
-      number: GPIO42
-      inverted: true
+      pcf8574: pcf
+      number: 5
       mode:
         input: true
-        pullup: true
+      inverted: true
     on_multi_click:
       - timing:
           - ON for at most 500ms
@@ -352,44 +354,6 @@ binary_sensor:
                 - script.execute: timer_toggle
                 - delay: 250ms
                 - globals.set: {id: button_debounce, value: 'false'}
-  # M5Dial V1.1 uses GPIO46 as HOLD for battery power retention.
-  # Keep this old back-button mapping commented; enabling it will conflict with
-  # src/main/hardware.yaml:power_hold and battery-only boot will turn off again.
-  # - platform: gpio
-  #   name: Hold Button
-  #   id: hold_button
-  #   pin:
-  #     number: GPIO46
-  #     inverted: false
-  #     mode:
-  #       input: true
-  #       pullup: false
-  #   on_press:
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_menu);'
-  #         then:
-  #           - script.execute: close_menu
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_light) || id(in_colorpicker);'
-  #         then:
-  #           - script.execute: close_light
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_air);'
-  #         then:
-  #           - script.execute: close_air
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_music);'
-  #         then:
-  #           - script.execute: close_music
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(in_timer);'
-  #         then:
-  #           - script.execute: close_timer
 
 lvgl:
   pages:
@@ -401,8 +365,8 @@ lvgl:
 
         - arc:
             align: CENTER
-            width: 228
-            height: 228
+            width: 95%
+            height: 95%
             arc_color: col_ring_track
             arc_width: 2
             arc_opa: COVER
@@ -426,8 +390,8 @@ lvgl:
         - arc:
             id: arc_minute
             align: CENTER
-            width: 228
-            height: 228
+            width: 95%
+            height: 95%
             arc_color: col_ring_track
             arc_width: 2
             arc_opa: TRANSP
@@ -453,7 +417,7 @@ lvgl:
         - label:
             id: lbl_clock
             align: CENTER
-            y: -50
+            y: -100
             text_font: font_clock
             text_color: col_text_pri
             text: "00:00"
@@ -461,38 +425,38 @@ lvgl:
         - label:
             id: lbl_date
             align: CENTER
-            y: -7
+            y: -14
             text_font: font_date
             text_color: col_text_lbl
             text: "000 0/0"
 
         - label:
             align: CENTER
-            x: -58
-            y: 13
+            x: -116
+            y: 26
             text_font: font_lbl
             text_color: col_text_temp
             text: "TEMP"
         - label:
             align: CENTER
             x: 0
-            y: 13
+            y: 26
             text_font: font_lbl
             text_color: col_text_hum
             text: "HUM"
         - label:
             align: CENTER
-            x: 58
-            y: 13
+            x: 116
+            y: 26
             text_font: font_lbl
             text_color: col_text_aqi
-            text: "AQI"
+            text: "WTHR"
 
         - label:
             id: lbl_temp
             align: CENTER
-            x: -58
-            y: 31
+            x: -116
+            y: 62
             text_font: font_val
             text_color: col_text_temp
             text: "--"
@@ -500,23 +464,23 @@ lvgl:
             id: lbl_humidity
             align: CENTER
             x: 0
-            y: 31
+            y: 62
             text_font: font_val
             text_color: col_text_hum
             text: "--"
         - label:
             id: lbl_uv
             align: CENTER
-            x: 58
-            y: 31
+            x: 116
+            y: 62
             text_font: font_val
             text_color: col_text_aqi
             text: "--"
 
         - obj:
             align: CENTER
-            y: 43
-            width: 164
+            y: 86
+            width: 75%
             height: 1
             bg_color: col_divider
             border_width: 0
@@ -525,15 +489,15 @@ lvgl:
 
         - label:
             align: CENTER
-            x: -30
-            y: 60
+            x: -60
+            y: 120
             text_font: font_lbl
             text_color: col_text_pres
             text: "PRESSURE"
         - label:
             align: CENTER
-            x: 40
-            y: 60
+            x: 80
+            y: 120
             text_font: font_lbl
             text_color: col_text_wind
             text: "WIND"
@@ -541,16 +505,16 @@ lvgl:
         - label:
             id: lbl_pressure
             align: CENTER
-            x: -30
-            y: 76
+            x: -60
+            y: 152
             text_font: font_val_s
             text_color: col_text_pres
             text: "--"
         - label:
             id: lbl_cloud
             align: CENTER
-            x: 40
-            y: 76
+            x: 80
+            y: 152
             text_font: font_val_s
             text_color: col_text_wind
             text: "--"

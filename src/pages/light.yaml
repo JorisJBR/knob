@@ -1,17 +1,17 @@
 image:
-  - file: "src/assets/images/palette.png"
+  - file: "smart-home-button/src/assets/images/palette.png"
     id: light_img_palette
     type: RGB565
     transparency: alpha_channel
     resize: 22x22
 
-  - file: src/assets/images/light.png
+  - file: "smart-home-button/src/assets/images/light.png"
     id: light_img_dengguang
     type: RGB565
     transparency: alpha_channel
     resize: 20x20
 
-  - file: src/assets/images/gradient.png
+  - file: "smart-home-button/src/assets/images/gradient.png"
     id: light_img_gradient
     type: RGB565
     transparency: alpha_channel
@@ -132,14 +132,24 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                red: !lambda "return id(light_color_r) / 255.0f;"
-                green: !lambda "return id(light_color_g) / 255.0f;"
-                blue: !lambda "return id(light_color_b) / 255.0f;"
+            - homeassistant.action:
+                action: light.turn_on
+                data:
+                  entity_id: ${light_entity}
+                data_template:
+                  brightness: !lambda "return id(light_brightness) / 100.0f;"
+            # - light.turn_on:
+            #     id: led_strip
+            #     brightness: !lambda "return id(light_brightness) / 100.0f;"
+            #     red: !lambda "return id(light_color_r) / 255.0f;"
+            #     green: !lambda "return id(light_color_g) / 255.0f;"
+            #     blue: !lambda "return id(light_color_b) / 255.0f;"
           else:
-            - light.turn_off: led_strip
+            # - light.turn_off: led_strip
+            - homeassistant.action:
+                action: light.turn_off
+                data:
+                  entity_id: ${light_entity}
 
   - id: open_colorpicker
     then:
@@ -185,15 +195,15 @@ script:
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: in_light, value: 'true'}
       - script.execute: refresh_light_arc
-      - if:
-          condition:
-            lambda: 'return id(light_on);'
-          then:
-            - light.control:
-                id: led_strip
-                red: !lambda "return id(light_color_r) / 255.0f;"
-                green: !lambda "return id(light_color_g) / 255.0f;"
-                blue: !lambda "return id(light_color_b) / 255.0f;"
+      # - if:
+      #     condition:
+      #       lambda: 'return id(light_on);'
+      #     then:
+      #       - light.control:
+      #           id: led_strip
+      #           red: !lambda "return id(light_color_r) / 255.0f;"
+      #           green: !lambda "return id(light_color_g) / 255.0f;"
+      #           blue: !lambda "return id(light_color_b) / 255.0f;"
       - lvgl.page.show:
           id: page_light
           animation: MOVE_RIGHT
@@ -260,9 +270,15 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - light.control:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
+            - homeassistant.action:
+                action: light.turn_on
+                data:
+                  entity_id: ${light_entity}
+                data_template:
+                  brightness: !lambda "return id(light_brightness) / 100.0f;"
+            # - light.control:
+            #     id: led_strip
+            #     brightness: !lambda "return id(light_brightness) / 100.0f;"
 
   - id: light_brightness_down
     then:
@@ -275,9 +291,15 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - light.control:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
+            - homeassistant.action:
+                action: light.turn_on
+                data:
+                  entity_id: ${light_entity}
+                data_template:
+                  brightness: !lambda "return id(light_brightness) / 100.0f;"
+              # - light.control:
+              #     id: led_strip
+              #     brightness: !lambda "return id(light_brightness) / 100.0f;"
 
   - id: refresh_light_arc
     then:
@@ -321,60 +343,60 @@ script:
           id: light_arc
           value: !lambda "return id(light_brightness);"
 
-  - id: cycle_gradient_effect
-    then:
-      - lambda: |-
-          id(light_gradient_mode) = (id(light_gradient_mode) + 1) % 6;
-          id(light_on) = true;
-      - script.execute: refresh_light_arc
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 0;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Aurora"
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 1;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Sunset"
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 2;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Ocean"
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 3;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Neon"
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 4;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Forest"
-      - if:
-          condition:
-            lambda: 'return id(light_gradient_mode) == 5;'
-          then:
-            - light.turn_on:
-                id: led_strip
-                brightness: !lambda "return id(light_brightness) / 100.0f;"
-                effect: "Atmosphere Flow Ice"
+  # - id: cycle_gradient_effect
+  #   then:
+  #     - lambda: |-
+  #         id(light_gradient_mode) = (id(light_gradient_mode) + 1) % 6;
+  #         id(light_on) = true;
+  #     - script.execute: refresh_light_arc
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 0;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Aurora"
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 1;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Sunset"
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 2;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Ocean"
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 3;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Neon"
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 4;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Forest"
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(light_gradient_mode) == 5;'
+  #         then:
+  #           - light.turn_on:
+  #               id: led_strip
+  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
+  #               effect: "Atmosphere Flow Ice"
 
 lvgl:
   pages:
@@ -390,9 +412,9 @@ lvgl:
             align: TOP_LEFT
             x: 0
             y: 0
-            width: 240
-            height: 240
-            radius: 120
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_light_bg
             bg_opa: COVER
@@ -404,8 +426,8 @@ lvgl:
                   id: light_arc
                   x: 17
                   y: 17
-                  width: 205
-                  height: 205
+                  width: 85%
+                  height: 85%
                   rotation: 90
                   start_angle: 55
                   end_angle: 305
@@ -496,7 +518,7 @@ lvgl:
                   shadow_spread: 0
                   clickable: true
                   scrollbar_mode: "OFF"
-                  scroll_dir: NONE
+                  #scroll_dir: NONE
                   on_click:
                     - script.execute: open_colorpicker
                   widgets:
@@ -522,10 +544,10 @@ lvgl:
                   shadow_opa: 25%
                   shadow_spread: 0
                   clickable: true
-                  scrollbar_mode: "OFF"
-                  scroll_dir: NONE
-                  on_click:
-                    - script.execute: cycle_gradient_effect
+                  #scrollbar_mode: "OFF"
+                  #scroll_dir: NONE
+                  # on_click:
+                  #   - script.execute: cycle_gradient_effect
                   widgets:
                     - image:
                         src: light_img_gradient
@@ -549,7 +571,7 @@ lvgl:
                   shadow_spread: 0
                   clickable: true
                   scrollbar_mode: "OFF"
-                  scroll_dir: NONE
+                  #scroll_dir: NONE
                   on_click:
                     - script.execute: toggle_light_onoff
                   widgets:
@@ -570,9 +592,9 @@ lvgl:
             align: TOP_LEFT
             x: 0
             y: 0
-            width: 240
-            height: 240
-            radius: 120
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_light_bg
             bg_opa: COVER
@@ -585,8 +607,8 @@ lvgl:
                   id: cp_arc
                   x: 12
                   y: 12
-                  width: 216
-                  height: 216
+                  width: 90%
+                  height: 90%
                   rotation: 270
                   start_angle: 0
                   end_angle: 359
@@ -617,9 +639,9 @@ lvgl:
                   align: CENTER
                   x: 0
                   y: 0
-                  width: 120
-                  height: 120
-                  radius: 60
+                  width: 50%
+                  height: 50%
+                  radius: 25%
                   bg_color: 0xA98FFF
                   bg_opa: COVER
                   border_width: 0

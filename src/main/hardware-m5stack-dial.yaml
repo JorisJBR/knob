@@ -1,8 +1,8 @@
 i2c:
-  - id: internal_i2c
+- id: internal_i2c
     sda: GPIO11
     scl: GPIO12
-  - id: external_i2c
+- id: external_i2c
     sda: GPIO13
     scl: GPIO15
 
@@ -247,3 +247,190 @@ light:
               uint8_t b = (uint8_t)(170.0f + 85.0f * w2);
               it[i] = Color(r, g, b);
             }
+
+sensor:
+  - platform: rotary_encoder
+    id: encoder
+    pin_a:
+      number: GPIO40
+      mode: INPUT_PULLUP
+    pin_b:
+      number: GPIO41
+      mode: INPUT_PULLUP
+    resolution: 4
+    on_clockwise:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_up
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_up
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) += 1;
+                if (id(air_encoder_step_accum) >= 4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_up).execute();
+                  } else {
+                    id(air_fan_up).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_up
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_up
+    on_anticlockwise:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_down
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_down
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) -= 1;
+                if (id(air_encoder_step_accum) <= -4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_down).execute();
+                  } else {
+                    id(air_fan_down).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_down
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_down
+
+binary_sensor:
+  - platform: gpio
+    name: Button
+    id: front_button
+    pin:
+      number: GPIO42
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+    on_multi_click:
+      - timing:
+          - ON for at most 500ms
+          - OFF for at most 500ms
+          - ON for at most 500ms
+          - OFF for at least 40ms
+        invalid_cooldown: 150ms
+        then:
+          - if:
+              condition:
+                lambda: 'return !id(button_debounce);'
+              then:
+                - globals.set: {id: button_debounce, value: 'true'}
+                - script.execute: dial_back
+                - delay: 250ms
+                - globals.set: {id: button_debounce, value: 'false'}
+      - timing:
+          - ON for at most 420ms
+          - OFF for at least 520ms
+        invalid_cooldown: 150ms
+        then:
+          - if:
+              condition:
+                lambda: 'return id(in_menu) && !id(button_debounce);'
+              then:
+                - globals.set: {id: button_debounce, value: 'true'}
+                - script.execute: menu_confirm
+                - delay: 250ms
+                - globals.set: {id: button_debounce, value: 'false'}
+          - if:
+              condition:
+                lambda: 'return id(in_timer) && !id(button_debounce);'
+              then:
+                - globals.set: {id: button_debounce, value: 'true'}
+                - script.execute: timer_toggle
+                - delay: 250ms
+                - globals.set: {id: button_debounce, value: 'false'}
+  # M5Dial V1.1 uses GPIO46 as HOLD for battery power retention.
+  # Keep this old back-button mapping commented; enabling it will conflict with
+  # src/main/hardware.yaml:power_hold and battery-only boot will turn off again.
+  # - platform: gpio
+  #   name: Hold Button
+  #   id: hold_button
+  #   pin:
+  #     number: GPIO46
+  #     inverted: false
+  #     mode:
+  #       input: true
+  #       pullup: false
+  #   on_press:
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(in_menu);'
+  #         then:
+  #           - script.execute: close_menu
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(in_light) || id(in_colorpicker);'
+  #         then:
+  #           - script.execute: close_light
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(in_air);'
+  #         then:
+  #           - script.execute: close_air
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(in_music);'
+  #         then:
+  #           - script.execute: close_music
+  #     - if:
+  #         condition:
+  #           lambda: 'return id(in_timer);'
+  #         then:
+  #           - script.execute: close_timer

@@ -101,9 +101,9 @@ lvgl:
       - obj:
           id: loading_page
           align: CENTER
-          width: 240
-          height: 240
-          radius: 120
+          width: 100%
+          height: 100%
+          radius: 50%
           bg_color: col_bg
           bg_opa: COVER
           border_width: 0
@@ -115,8 +115,8 @@ lvgl:
             - obj:
                 id: obj_spinner
                 align: CENTER
-                width: 240
-                height: 240
+                width: 100%
+                height: 100%
                 bg_opa: TRANSP
                 border_width: 0
                 pad_all: 0
@@ -125,8 +125,8 @@ lvgl:
                   - spinner:
                       id: boot_spinner
                       align: CENTER
-                      width: 216
-                      height: 216
+                      width: 85%
+                      height: 85%
                       spin_time: 1400ms
                       arc_length: 90deg
                       arc_width: 3
@@ -203,8 +203,8 @@ lvgl:
                 id: obj_bar_wrap
                 align: CENTER
                 y: 72
-                width: 130
-                height: 10
+                width: 60%
+                height: 5%
                 bg_opa: TRANSP
                 border_width: 0
                 pad_all: 0
@@ -214,7 +214,7 @@ lvgl:
                   - bar:
                       id: boot_bar
                       align: CENTER
-                      width: 130
+                      width: 60%
                       height: 4
                       value: 0
                       min_value: 0
