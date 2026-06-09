@@ -54,13 +54,6 @@ output:
       number: 2
       mode:
         output: true
-  # - platform: gpio
-  #   id: front_button
-  #   pin:
-  #     pcf8574: pcf
-  #     number: 5
-  #     mode:
-  #       input: true
 
 spi:
     id: spi_bus
@@ -197,7 +190,7 @@ touchscreen:
 # Backlight toggle
 light:
   - platform: monochromatic
-    name: "Backlight"
+    name: Backlight
     output: backlight_output
     id: display_backlight
     default_transition_length: 0s
@@ -206,6 +199,7 @@ light:
 # Rotary dial
 sensor:
   - platform: rotary_encoder
+    name: Dial
     id: encoder
     pin_a:
       number: GPIO42

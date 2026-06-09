@@ -103,8 +103,6 @@ globals:
     type: int
     initial_value: '-1'
 
-# homeassistant:
-
 sensor:
   - platform: homeassistant
     id: ha_light_brightness
@@ -140,6 +138,17 @@ binary_sensor:
     entity_id: ${light_entity}
     on_state:
       - script.execute: refresh_light_arc
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_light_fname
+    entity_id: ${light_entity}
+    attribute: friendly_name
+
+  - platform: homeassistant
+    id: ha_light_area
+    entity_id: ${light_entity}
+    attribute: area_id
 
 script:
   - id: open_light

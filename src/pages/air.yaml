@@ -4,7 +4,7 @@ font:
       weight: 500
       type: gfonts
     id: font_air_temp
-    size: 70
+    size: 140
     bpp: 4
     glyphs: "0123456789.\xc2\xb0"
 
@@ -13,13 +13,13 @@ font:
       weight: 500
       type: gfonts
     id: font_air_label
-    size: 14
+    size: 28
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .:%\xc2\xb0/-"
 
   - file: "gfonts://Roboto"
     id: font_air_degree
-    size: 40
+    size: 80
     bpp: 4
     glyphs: "\xc2\xb0"
 
@@ -28,37 +28,37 @@ image:
     id: img_air_fan_off
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
   - file: src/assets/images/air_page/fan_on.png
     id: img_air_fan_on
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
   - file: src/assets/images/air_page/power_off.png
     id: img_air_power_off
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
   - file: src/assets/images/air_page/power_on.png
     id: img_air_power_on
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
   - file: src/assets/images/air_page/swing_off.png
     id: img_air_swing_off
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
   - file: src/assets/images/air_page/swing_on.png
     id: img_air_swing_on
     type: RGB565
     transparency: alpha_channel
-    resize: 25x25
+    resize: 50x50
 
 color:
   - id: col_air_bg
@@ -127,6 +127,11 @@ sensor:
       - script.execute: refresh_air
 
 text_sensor:
+  - platform: homeassistant
+    id: ha_air_fname
+    entity_id: ${climate_entity}
+    attribute: friendly_name
+  
   - platform: homeassistant
     id: ha_air_hvac_mode
     entity_id: ${climate_entity}
@@ -266,9 +271,9 @@ lvgl:
             align: TOP_LEFT
             x: 0
             y: 0
-            width: 480
-            height: 480
-            radius: 240
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_air_bg
             bg_opa: COVER
@@ -279,9 +284,9 @@ lvgl:
               - obj:
                   x: 10
                   y: 10
-                  width: 440
-                  height: 440
-                  radius: 220
+                  width: 90%
+                  height: 90%
+                  radius: 45%
                   bg_color: col_air_inner
                   bg_opa: COVER
                   border_width: 0
@@ -291,8 +296,8 @@ lvgl:
               - arc:
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 95%
+                  height: 95%
                   start_angle: 45
                   end_angle: 315
                   min_value: 0
@@ -316,8 +321,8 @@ lvgl:
                   id: air_set_arc
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 85%
+                  height: 85%
                   start_angle: 45
                   end_angle: 315
                   min_value: 34
@@ -344,10 +349,11 @@ lvgl:
 
               - arc:
                   id: fan_seg_1
+                  align: RIGHT_MID
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 45%
+                  height: 45%
                   start_angle: 334
                   end_angle: 341
                   min_value: 0
@@ -363,10 +369,11 @@ lvgl:
 
               - arc:
                   id: fan_seg_2
+                  align: RIGHT_MID
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 45%
+                  height: 45%
                   start_angle: 345
                   end_angle: 352
                   min_value: 0
@@ -382,10 +389,11 @@ lvgl:
 
               - arc:
                   id: fan_seg_3
+                  align: RIGHT_MID
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 45%
+                  height: 45%
                   start_angle: 356
                   end_angle: 3
                   min_value: 0
@@ -401,10 +409,11 @@ lvgl:
 
               - arc:
                   id: fan_seg_4
+                  align: RIGHT_MID
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 45%
+                  height: 45%
                   start_angle: 8
                   end_angle: 15
                   min_value: 0
@@ -420,10 +429,11 @@ lvgl:
 
               - arc:
                   id: fan_seg_5
+                  align: RIGHT_MID
                   x: 10
                   y: 10
-                  width: 220
-                  height: 220
+                  width: 45%
+                  height: 45%
                   start_angle: 19
                   end_angle: 26
                   min_value: 0
@@ -468,7 +478,7 @@ lvgl:
               - label:
                   id: lbl_air_hvac_mode
                   align: CENTER
-                  y: 16
+                  y: 32
                   text: "Automatic"
                   text_font: font_air_label
                   text_color: 0x5A7598
@@ -479,9 +489,9 @@ lvgl:
                   align: BOTTOM_MID
                   x: -46
                   y: -50
-                  width: 37
-                  height: 37
-                  radius: 19
+                  width: 7%
+                  height: 7%
+                  radius: 4%
                   bg_color: col_air_btn_bg
                   bg_opa: COVER
                   border_width: 0
@@ -500,9 +510,9 @@ lvgl:
                   align: BOTTOM_MID
                   x: 0
                   y: -50
-                  width: 37
-                  height: 37
-                  radius: 19
+                  width: 7%
+                  height: 7%
+                  radius: 4%
                   bg_color: col_air_btn_mid
                   bg_opa: COVER
                   border_width: 1
@@ -529,9 +539,9 @@ lvgl:
                   align: BOTTOM_MID
                   x: 46
                   y: -50
-                  width: 37
-                  height: 37
-                  radius: 19
+                  width: 7%
+                  height: 7%
+                  radius: 4%
                   bg_color: col_air_btn_bg
                   bg_opa: COVER
                   border_width: 0

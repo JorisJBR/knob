@@ -2,12 +2,12 @@ packages:
   hardware:    !include src/main/hardware-crowpanel-2_1.yaml
   load_page:   !include src/pages/load.yaml
   clock_page:  !include src/pages/clock.yaml
-  menu_page:   !include src/pages/menu.yaml
   light_page:  !include src/pages/light.yaml
   air_page:    !include src/pages/air.yaml
   music_page:  !include src/pages/music.yaml
   fridge_page: !include src/pages/fridge.yaml
   timer_page:  !include src/pages/timer.yaml
+  menu_page:   !include src/pages/menu.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:

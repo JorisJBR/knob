@@ -13,13 +13,13 @@ font:
       weight: 300
       type: gfonts
     id: font_music_title
-    size: 28
+    size: 56
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
 
   - file: src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
-    size: 48
+    size: 96
     bpp: 4
     glyphs:
     - ${icon_play}  # play-solid-full
@@ -46,9 +46,14 @@ image:
     id: place_holder
     type: RGB565
     transparency: alpha_channel
-    resize: 160x160
+    resize: 320x320
 
 text_sensor:
+  - platform: homeassistant
+    id: media_player_fname
+    entity_id: ${music_player_entity}
+    attribute: friendly_name
+
   - platform: homeassistant
     id: media_player_status
     entity_id: ${music_player_entity}
@@ -124,7 +129,7 @@ globals:
     initial_value: '36'
   - id: music_volume_step
     type: int
-    initial_value: '5'
+    initial_value: '1'
   - id: music_playing
     type: bool
     initial_value: 'false'
@@ -195,7 +200,7 @@ script:
     then:
       - lambda: |-
           bool current_playing = id(media_player_status).state == "playing" || 
-                                 id(media_player_status).state == "buffering";
+                                id(media_player_status).state == "buffering";
           bool will_play = !current_playing;
           id(music_playing) = will_play;
           id(music_state_override_until_ms) = millis() + 2500;
@@ -336,8 +341,9 @@ lvgl:
                     height: 0
 
               - obj:
-                  x: 54
-                  y: 8
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 50%
                   height: 50%
                   radius: 25%

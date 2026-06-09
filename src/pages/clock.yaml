@@ -120,6 +120,19 @@ time:
       then:
         - pcf8563.write_time:
 
+text_sensor:
+  - platform: homeassistant
+    id: ha_wthr
+    entity_id: ${weather_entity}
+    attribute: state.translated
+    internal: true
+    on_value:
+      then:
+        - lvgl.label.update:
+            id: lbl_wthr
+            text: !lambda |-
+              return x.c_str();
+
 sensor:
   - platform: homeassistant
     id: ha_temperature
@@ -147,20 +160,6 @@ sensor:
             text: !lambda |-
               static char buf[8];
               sprintf(buf, "%.0f%%", x);
-              return buf;
-
-  - platform: homeassistant
-    id: ha_aqi
-    entity_id: ${weather_entity}
-    attribute: state_translated
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_wthr
-            text: !lambda |-
-              static char buf[40];
-              sprintf(buf, "%.0f", x);
               return buf;
 
   - platform: homeassistant
