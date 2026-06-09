@@ -1,21 +1,21 @@
 image:
-  - file: "smart-home-button/src/assets/images/palette.png"
+  - file: src/assets/images/palette.png
     id: light_img_palette
     type: RGB565
     transparency: alpha_channel
-    resize: 22x22
+    resize: 44x44
 
-  - file: "smart-home-button/src/assets/images/light.png"
+  - file: src/assets/images/light.png
     id: light_img_dengguang
     type: RGB565
     transparency: alpha_channel
-    resize: 20x20
+    resize: 40x40
 
-  - file: "smart-home-button/src/assets/images/gradient.png"
+  - file: src/assets/images/gradient.png
     id: light_img_gradient
     type: RGB565
     transparency: alpha_channel
-    resize: 22x22
+    resize: 44x44
 
 font:
   - file:
@@ -23,13 +23,13 @@ font:
       weight: 900
       type: gfonts
     id: font_light_big
-    size: 59
+    size: 118
     bpp: 4
     glyphs: "0123456789"
 
   - file: "gfonts://DM+Sans"
     id: font_light_pct
-    size: 24
+    size: 48
     bpp: 4
     glyphs: "%"
 
@@ -38,7 +38,7 @@ font:
       weight: 900
       type: gfonts
     id: font_light_label
-    size: 14
+    size: 28
     bpp: 4
     glyphs: "ABCEGHIKLNOPRSTUY "
 
@@ -47,14 +47,14 @@ font:
       weight: 900
       type: gfonts
     id: font_cp_hue
-    size: 20
+    size: 40
     bpp: 4
     glyphs: "0123456789ABCDEF"
 
 color:
   - id: col_light_bg
     hex: "000000"
-  - id: col_light_track
+  - id: col_light_track #Change to light color
     hex: "282729"
   - id: col_light_blue
     hex: "5ABBFD"
@@ -74,7 +74,7 @@ color:
 globals:
   - id: light_brightness
     type: int
-    initial_value: '75'
+    initial_value: '75' # Get from light state
   - id: in_light
     type: bool
     initial_value: 'false'
@@ -102,6 +102,44 @@ globals:
   - id: light_gradient_mode
     type: int
     initial_value: '-1'
+
+# homeassistant:
+
+sensor:
+  - platform: homeassistant
+    id: ha_light_brightness
+    entity_id: ${light_entity}
+    attribute: brightness
+    on_value:
+      - script.execute: refresh_light_arc
+
+  - platform: homeassistant
+    id: ha_light_r
+    entity_id: ${light_entity}
+    attribute: rgb_color
+    on_value:
+      - script.execute: refresh_light_arc
+
+  - platform: homeassistant
+    id: ha_light_g
+    entity_id: ${light_entity}
+    attribute: rgb_color
+    on_value:
+      - script.execute: refresh_light_arc
+
+  - platform: homeassistant
+    id: ha_light_b
+    entity_id: ${light_entity}
+    attribute: rgb_color
+    on_value:
+      - script.execute: refresh_light_arc
+
+binary_sensor:
+  - platform: homeassistant
+    id: ha_light_on
+    entity_id: ${light_entity}
+    on_state:
+      - script.execute: refresh_light_arc
 
 script:
   - id: open_light
@@ -132,22 +170,18 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - homeassistant.action:
-                action: light.turn_on
+            - homeassistant.service:
+                service: light.turn_on
                 data:
                   entity_id: ${light_entity}
-                data_template:
-                  brightness: !lambda "return id(light_brightness) / 100.0f;"
-            # - light.turn_on:
-            #     id: led_strip
-            #     brightness: !lambda "return id(light_brightness) / 100.0f;"
-            #     red: !lambda "return id(light_color_r) / 255.0f;"
-            #     green: !lambda "return id(light_color_g) / 255.0f;"
-            #     blue: !lambda "return id(light_color_b) / 255.0f;"
+                  # rgb_color: |-
+                  #   - !lambda "return id(light_color_r);"
+                  #   - !lambda "return id(light_color_g);"
+                  #   - !lambda "return id(light_color_b);"
+                  brightness_pct: !lambda "return id(light_brightness);"
           else:
-            # - light.turn_off: led_strip
-            - homeassistant.action:
-                action: light.turn_off
+            - homeassistant.service:
+                service: light.turn_off
                 data:
                   entity_id: ${light_entity}
 
@@ -195,15 +229,19 @@ script:
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: in_light, value: 'true'}
       - script.execute: refresh_light_arc
-      # - if:
-      #     condition:
-      #       lambda: 'return id(light_on);'
-      #     then:
-      #       - light.control:
-      #           id: led_strip
-      #           red: !lambda "return id(light_color_r) / 255.0f;"
-      #           green: !lambda "return id(light_color_g) / 255.0f;"
-      #           blue: !lambda "return id(light_color_b) / 255.0f;"
+      - if:
+          condition:
+            lambda: 'return id(light_on);'
+          then:
+            - homeassistant.service:
+                service: light.turn_on
+                data:
+                  entity_id: ${light_entity}
+                  # rgb_color: |-
+                  #   - !lambda "return id(light_color_r);"
+                  #   - !lambda "return id(light_color_g);"
+                  #   - !lambda "return id(light_color_b);"
+                  brightness_pct: !lambda "return id(light_brightness);"
       - lvgl.page.show:
           id: page_light
           animation: MOVE_RIGHT
@@ -270,15 +308,15 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - homeassistant.action:
-                action: light.turn_on
+            - homeassistant.service:
+                service: light.turn_on
                 data:
                   entity_id: ${light_entity}
-                data_template:
-                  brightness: !lambda "return id(light_brightness) / 100.0f;"
-            # - light.control:
-            #     id: led_strip
-            #     brightness: !lambda "return id(light_brightness) / 100.0f;"
+                  # rgb_color: |-
+                  #   - !lambda "return id(light_color_r);"
+                  #   - !lambda "return id(light_color_g);"
+                  #   - !lambda "return id(light_color_b);"
+                  brightness_pct: !lambda "return id(light_brightness);"
 
   - id: light_brightness_down
     then:
@@ -291,15 +329,15 @@ script:
           condition:
             lambda: 'return id(light_on);'
           then:
-            - homeassistant.action:
-                action: light.turn_on
+            - homeassistant.service:
+                service: light.turn_on
                 data:
                   entity_id: ${light_entity}
-                data_template:
-                  brightness: !lambda "return id(light_brightness) / 100.0f;"
-              # - light.control:
-              #     id: led_strip
-              #     brightness: !lambda "return id(light_brightness) / 100.0f;"
+                  # rgb_color: |-
+                  #   - !lambda "return id(light_color_r);"
+                  #   - !lambda "return id(light_color_g);"
+                  #   - !lambda "return id(light_color_b);"
+                  brightness_pct: !lambda "return id(light_brightness);"
 
   - id: refresh_light_arc
     then:
@@ -343,61 +381,6 @@ script:
           id: light_arc
           value: !lambda "return id(light_brightness);"
 
-  # - id: cycle_gradient_effect
-  #   then:
-  #     - lambda: |-
-  #         id(light_gradient_mode) = (id(light_gradient_mode) + 1) % 6;
-  #         id(light_on) = true;
-  #     - script.execute: refresh_light_arc
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 0;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Aurora"
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 1;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Sunset"
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 2;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Ocean"
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 3;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Neon"
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 4;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Forest"
-  #     - if:
-  #         condition:
-  #           lambda: 'return id(light_gradient_mode) == 5;'
-  #         then:
-  #           - light.turn_on:
-  #               id: led_strip
-  #               brightness: !lambda "return id(light_brightness) / 100.0f;"
-  #               effect: "Atmosphere Flow Ice"
-
 lvgl:
   pages:
     - id: page_light
@@ -424,10 +407,10 @@ lvgl:
             widgets:
               - arc:
                   id: light_arc
-                  x: 17
-                  y: 17
-                  width: 85%
-                  height: 85%
+                  x: 24
+                  y: 34
+                  width: 90%
+                  height: 90%
                   rotation: 90
                   start_angle: 55
                   end_angle: 305
@@ -449,17 +432,17 @@ lvgl:
                     bg_color: 0xFFFFFF
                     bg_opa: COVER
                     border_width: 0
-                    width: 16
-                    height: 16
-                    radius: 8
+                    width: 6%
+                    height: 6%
+                    radius: 3%
 
               - obj:
                   id: light_knob_dot
-                  x: 176
-                  y: 39
-                  width: 20
-                  height: 20
-                  radius: 12
+                  x: 352
+                  y: 78
+                  width: 8%
+                  height: 8%
+                  radius: 5%
                   bg_opa: TRANSP
                   border_width: 0
                   clickable: false
@@ -467,26 +450,28 @@ lvgl:
 
               - label:
                   id: lbl_brightness_num
-                  x: 72
-                  y: 65
+                  align: CENTER
+                  x: 144
+                  y: -70
                   text: "75"
                   text_font: font_light_big
                   text_color: 0xFFFFFF
 
               - label:
                   id: lbl_brightness_pct
-                  x: 152
-                  y: 95
+                  align: CENTER
+                  x: 0
+                  y: 0
                   text: "%"
                   text_font: font_light_pct
                   text_color: col_light_purple
 
               - obj:
-                  x: 81
-                  y: 143
-                  width: 78
-                  height: 22
-                  radius: 15
+                  x: 162
+                  y: 286
+                  width: 32%
+                  height: 10%
+                  radius: 7%
                   bg_color: col_light_label_bg
                   bg_opa: COVER
                   border_width: 0
@@ -502,11 +487,11 @@ lvgl:
 
               - obj:
                   id: btn_palette
-                  x: 61
-                  y: 177
-                  width: 36
-                  height: 36
-                  radius: 18
+                  x: 122
+                  y: 354
+                  width: 15%
+                  height: 15%
+                  radius: 7%
                   bg_color: col_light_bg
                   bg_opa: COVER
                   border_width: 2
@@ -529,11 +514,11 @@ lvgl:
 
               - obj:
                   id: btn_rainbow
-                  x: 102
-                  y: 177
-                  width: 36
-                  height: 36
-                  radius: 18
+                  x: 204
+                  y: 354
+                  width: 15%
+                  height: 15%
+                  radius: 7%
                   bg_color: col_light_bg
                   bg_opa: COVER
                   border_width: 2
@@ -544,10 +529,10 @@ lvgl:
                   shadow_opa: 25%
                   shadow_spread: 0
                   clickable: true
-                  #scrollbar_mode: "OFF"
+                  scrollbar_mode: "OFF"
                   #scroll_dir: NONE
-                  # on_click:
-                  #   - script.execute: cycle_gradient_effect
+                  #on_click:
+                    #- script.execute: cycle_gradient_effect
                   widgets:
                     - image:
                         src: light_img_gradient
@@ -555,11 +540,11 @@ lvgl:
                         clickable: false
               - obj:
                   id: btn_dengguang
-                  x: 143
-                  y: 177
-                  width: 36
-                  height: 36
-                  radius: 18
+                  x: 286
+                  y: 354
+                  width: 15%
+                  height: 15%
+                  radius: 7%
                   bg_color: col_light_bg
                   bg_opa: COVER
                   border_width: 2
@@ -605,10 +590,10 @@ lvgl:
 
               - arc:
                   id: cp_arc
-                  x: 12
-                  y: 12
-                  width: 90%
-                  height: 90%
+                  x: 24
+                  y: 24
+                  width: 95%
+                  height: 95%
                   rotation: 270
                   start_angle: 0
                   end_angle: 359
@@ -630,9 +615,9 @@ lvgl:
                     bg_color: 0xFFFFFF
                     bg_opa: COVER
                     border_width: 0
-                    width: 16
-                    height: 16
-                    radius: 8
+                    width: 6%
+                    height: 6%
+                    radius: 3%
 
               - obj:
                   id: cw_color_circle

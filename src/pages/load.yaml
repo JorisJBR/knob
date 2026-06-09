@@ -14,7 +14,55 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .:%\xc2\xb0/-"
 
+image:
+  - file: src/assets/images/logo.png
+    id: logo_img
+    type: RGB565
+    transparency: alpha_channel
+    resize: 72x72
+  - file: src/assets/images/scene.png
+    id: img_scene
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/bulb.png
+    id: img_light
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/ac.png
+    id: img_ac
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/music.png
+    id: img_music
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/palette.png
+    id: img_palette
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/brightness.png
+    id: img_brightness
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+  - file: src/assets/images/light.png
+    id: img_dengguang
+    type: RGB565
+    transparency: alpha_channel
+    resize: 24x24
+
 color:
+  - id: col_bg
+    hex: "050812"
+  - id: col_text_pri
+    hex: "EEF2FF"
+  - id: col_text_sec
+    hex: "6B7FCC"
   - id: col_blue
     hex: "41B3FF"        # active blue — spinner / dots / bar
   - id: col_blue_track
@@ -26,6 +74,9 @@ globals:
   - id: dot_tick
     type: int
     initial_value: '0'
+  - id: ha_connected
+    type: bool
+    initial_value: 'false'
 
 interval:
   - interval: 400ms
@@ -94,6 +145,189 @@ script:
             lv_label_set_text(id(lbl_sub),    "Home Assistant");
             id(check_boot_status).execute();
           }
+
+  - id: dial_back
+    then:
+      - lambda: |-
+          if (id(in_menu)) {
+            id(close_menu).execute();
+            return;
+          }
+          if (id(in_clock)){
+            id(close_clock).execute();
+            return;
+          }
+          if (id(in_light) || id(in_colorpicker)) {
+            id(close_light).execute();
+            return;
+          }
+          if (id(in_air)) {
+            id(close_air).execute();
+            return;
+          }
+          if (id(in_music)) {
+            id(in_music) = false;
+            id(open_menu).execute();
+            return;
+          }
+          if (id(in_timer)) {
+            id(close_timer).execute();
+            return;
+          }
+          if (id(in_fridge)) {
+            id(in_fridge) = false;
+            id(open_menu).execute();
+            return;
+          }
+          id(open_menu).execute();
+
+  - id: first_press
+    then:
+      - if:
+          condition:
+            lambda: 'return !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: dial_back
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+
+  - id: second_press
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: menu_confirm
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_timer) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: timer_toggle
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_light) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: toggle_light_onoff
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_music) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: play_toggle
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: air_toggle_mode
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+
+  - id: rotate_anticlockwise
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_down
+      - if:
+          condition:
+            lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_down
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) -= 1;
+                if (id(air_encoder_step_accum) <= -4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_down).execute();
+                  } else {
+                    id(air_fan_down).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music);'
+          then:
+            - script.execute: music_volume_down
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_up
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_down
+
+  - id: rotate_clockwise
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_colorpicker);'
+          then:
+            - script.execute: light_hue_up
+      - if:
+          condition:
+            lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
+          then:
+            - script.execute: light_brightness_up
+      - if:
+          condition:
+            lambda: 'return id(in_air) && !id(in_menu);'
+          then:
+            - lambda: |-
+                id(air_encoder_step_accum) += 1;
+                if (id(air_encoder_step_accum) >= 4) {
+                  id(air_encoder_step_accum) = 0;
+                  if (id(air_mode) == 0) {
+                    id(air_temp_up).execute();
+                  } else {
+                    id(air_fan_up).execute();
+                  }
+                }
+      - if:
+          condition:
+            lambda: 'return id(in_music) && !id(in_menu);'
+          then:
+            - script.execute: music_volume_up
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: menu_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_fridge);'
+          then:
+            - script.execute: fridge_scroll_down
+      - if:
+          condition:
+            lambda: 'return id(in_timer);'
+          then:
+            - script.execute: timer_encoder_up
 
 lvgl:
   top_layer:

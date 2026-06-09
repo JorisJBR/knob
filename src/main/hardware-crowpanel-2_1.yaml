@@ -194,7 +194,7 @@ touchscreen:
                 id(close_menu).execute();
             }
 
-#Backlight toggle
+# Backlight toggle
 light:
   - platform: monochromatic
     name: "Backlight"
@@ -202,3 +202,46 @@ light:
     id: display_backlight
     default_transition_length: 0s
     restore_mode: ALWAYS_ON
+
+# Rotary dial
+sensor:
+  - platform: rotary_encoder
+    id: encoder
+    pin_a:
+      number: GPIO42
+      mode: INPUT_PULLUP
+    pin_b:
+      number: GPIO4
+      mode: INPUT_PULLUP
+    resolution: 4
+    on_clockwise:
+      - script.execute: rotate_anticlockwise
+    on_anticlockwise:
+      - script.execute: rotate_clockwise
+
+# Front button
+binary_sensor:
+  - platform: gpio
+    name: Button
+    id: front_button
+    pin:
+      pcf8574: pcf
+      number: 5
+      mode:
+        input: true
+      inverted: true
+    on_multi_click:
+      - timing:
+          - ON for at most 500ms
+          - OFF for at most 500ms
+          - ON for at most 500ms
+          - OFF for at least 40ms
+        invalid_cooldown: 150ms
+        then:
+          - script.execute: first_press
+      - timing:
+          - ON for at most 420ms
+          - OFF for at least 520ms
+        invalid_cooldown: 150ms
+        then:
+          - script.execute: second_press

@@ -1,19 +1,19 @@
 font:
   - file: "gfonts://DM+Sans"
     id: font_menu_item
-    size: 20
+    size: 40
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_center
-    size: 21
+    size: 42
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_sub
-    size: 12
+    size: 24
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
@@ -32,36 +32,36 @@ color:
     hex: "2A3348"
 
 image:
-  - file: smart-home-button/src/assets/images/bulb.png
+  - file: src/assets/images/bulb.png
     id: menu_img_light
     type: RGB565
     transparency: alpha_channel
-    resize: 34x34
-  - file: smart-home-button/src/assets/images/ac_logo.png
+    resize: 68x68
+  - file: src/assets/images/ac_logo.png
     id: menu_img_ac
     type: RGB565
     transparency: alpha_channel
-    resize: 32x32
-  - file: smart-home-button/src/assets/images/music.png
+    resize: 64x64
+  - file: src/assets/images/music.png
     id: menu_img_music
     type: RGB565
     transparency: alpha_channel
-    resize: 34x34
-  - file: smart-home-button/src/assets/images/fridge.png
+    resize: 68x68
+  - file: src/assets/images/fridge.png
     id: menu_img_fridge
     type: RGB565
     transparency: alpha_channel
-    resize: 34x34
-  - file: smart-home-button/src/assets/images/timer.png
+    resize: 68x68
+  - file: src/assets/images/timer.png
     id: menu_img_timer
     type: RGB565
     transparency: alpha_channel
-    resize: 32x32
-  - file: smart-home-button/src/assets/images/home.png
+    resize: 64x64
+  - file: src/assets/images/home.png
     id: menu_img_home
     type: RGB565
     transparency: alpha_channel
-    resize: 34x34
+    resize: 68x68
 globals:
   - id: menu_sel
     type: int
@@ -156,7 +156,7 @@ script:
                     if (closeness > 1.0f) closeness = 1.0f;
 
                     const int mix = (int)(closeness * 1000.0f);
-                    int w = 40;
+                    int w = 80;
                     int opa_text = 0;
                     int opa_bg = 0;
                     int pill_shift = 0;
@@ -176,8 +176,8 @@ script:
                     const int opa_icon = lv_map(mix, 0, 1000, 96, 255);
 
                     lv_obj_set_width(slots[i], w);
-                    lv_obj_set_height(slots[i], i == 2 ? 56 : 40);
-                    lv_obj_set_style_radius(slots[i], i == 2 ? 28 : 20, LV_PART_MAIN);
+                    lv_obj_set_height(slots[i], i == 2 ? 112 : 80);
+                    lv_obj_set_style_radius(slots[i], i == 2 ? 56 : 40, LV_PART_MAIN);
                     lv_obj_set_style_bg_color(slots[i], lv_color_hex(0x0D1537), LV_PART_MAIN);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
 
@@ -199,7 +199,7 @@ script:
                   lv_obj_set_style_opa(id(slot_center_sub), center_sub_opa, LV_PART_MAIN);
 
                   // Animate arrow indicator upward
-                  const int dot_offsets[6] = {-35, -21, -7, 7, 21, 35};
+                  const int dot_offsets[6] = {-70, -42, -14, 14, 42, 70};
                   int from_dot = id(menu_sel);
                   int to_dot = ((from_dot - 1) % ITEM_N + ITEM_N) % ITEM_N;
                   int arrow_y = (int)(dot_offsets[from_dot] + (dot_offsets[to_dot] - dot_offsets[from_dot]) * phase);
@@ -534,9 +534,9 @@ lvgl:
 
         - obj:
             align: CENTER
-            width: 240
-            height: 240
-            radius: 120
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_menu_bg
             border_width: 0
@@ -549,8 +549,8 @@ lvgl:
                   align: TOP_LEFT
                   x: 0
                   y: 0
-                  width: 240
-                  height: 240
+                  width: 100%
+                  height: 100%
                   bg_opa: TRANSP
                   border_width: 0
                   scrollbar_mode: "OFF"
@@ -561,9 +561,9 @@ lvgl:
                     - obj:
                         id: slot_far_up
                         align: TOP_MID
-                        y: 6
-                        width: 180
-                        height: 40
+                        y: 12
+                        width: 75%
+                        height: 16%
                         bg_opa: TRANSP
                         border_width: 0
                         scrollbar_mode: "OFF"
@@ -573,12 +573,12 @@ lvgl:
                           - image:
                               id: slot_far_up_img
                               align: LEFT_MID
-                              x: 2
+                              x: 4
                               src: menu_img_timer
                           - label:
                               id: slot_far_up_lbl
                               align: LEFT_MID
-                              x: 38
+                              x: 76
                               text_font: font_menu_item
                               text_color: col_menu_dim
                               text: "Timer"
@@ -587,9 +587,9 @@ lvgl:
                     - obj:
                         id: slot_near_up
                         align: TOP_MID
-                        y: 42
-                        width: 180
-                        height: 40
+                        y: 84
+                        width: 75%
+                        height: 16%
                         bg_opa: TRANSP
                         border_width: 0
                         scrollbar_mode: "OFF"
@@ -599,12 +599,12 @@ lvgl:
                           - image:
                               id: slot_near_up_img
                               align: LEFT_MID
-                              x: 2
+                              x: 4
                               src: menu_img_fridge
                           - label:
                               id: slot_near_up_lbl
                               align: LEFT_MID
-                              x: 38
+                              x: 76
                               text_font: font_menu_item
                               text_color: col_menu_dim
                               text: "Fridge"
@@ -613,11 +613,11 @@ lvgl:
                     - obj:
                         id: slot_center_bar
                         align: TOP_MID
-                        y: 108
-                        x: -96
-                        width: 6
-                        height: 32
-                        radius: 3
+                        y: 216
+                        x: -192
+                        width: 2%
+                        height: 13%
+                        radius: 1%
                         bg_color: col_menu_accent
                         bg_opa: TRANSP
                         border_width: 0
@@ -627,10 +627,10 @@ lvgl:
                     - obj:
                         id: slot_center
                         align: TOP_MID
-                        y: 102
-                        width: 168
-                        height: 56
-                        radius: 20
+                        y: 204
+                        width: 70%
+                        height: 23%
+                        radius: 8%
                         bg_color: col_menu_pill
                         bg_opa: COVER
                         border_width: 0
@@ -641,33 +641,33 @@ lvgl:
                           - image:
                               id: slot_center_img
                               align: LEFT_MID
-                              x: 14
+                              x: 28
                               src: menu_img_light
                           - label:
                               id: slot_center_lbl
-                              x: 54
-                              y: 6
+                              x: 108
+                              y: 12
                               text_font: font_menu_item
                               text_color: col_text_pri
-                              width: 106
+                              width: 44%
                               long_mode: DOT
                               text: "Scene"
                           - label:
                               id: slot_center_sub
-                              x: 54
-                              y: 30
+                              x: 108
+                              y: 60
                               text_font: font_menu_sub
                               text_color: col_menu_val
-                              width: 106
+                              width: 44%
                               long_mode: DOT
                               text: "Model Sleep"
 
                     - obj:
                         id: slot_near_dn
                         align: TOP_MID
-                        y: 162
-                        width: 180
-                        height: 40
+                        y: 324
+                        width: 75%
+                        height: 16%
                         bg_opa: TRANSP
                         border_width: 0
                         scrollbar_mode: "OFF"
@@ -677,12 +677,12 @@ lvgl:
                           - image:
                               id: slot_near_dn_img
                               align: LEFT_MID
-                              x: 2
+                              x: 4
                               src: menu_img_ac
                           - label:
                               id: slot_near_dn_lbl
                               align: LEFT_MID
-                              x: 38
+                              x: 76
                               text_font: font_menu_item
                               text_color: col_menu_dim
                               text: "AC"
@@ -691,9 +691,9 @@ lvgl:
                     - obj:
                         id: slot_far_dn
                         align: TOP_MID
-                        y: 198
-                        width: 180
-                        height: 40
+                        y: 396
+                        width: 75%
+                        height: 16%
                         bg_opa: TRANSP
                         border_width: 0
                         scrollbar_mode: "OFF"
@@ -717,11 +717,11 @@ lvgl:
               - obj:
                   id: btn_menu_home
                   align: TOP_RIGHT
-                  x: -8
-                  y: 8
-                  width: 34
-                  height: 34
-                  radius: 17
+                  x: -16
+                  y: 16
+                  width: 14%
+                  height: 14%
+                  radius: 7%
                   bg_color: col_menu_pill
                   bg_opa: TRANSP
                   border_width: 0
@@ -736,11 +736,11 @@ lvgl:
               - obj:
                   id: sdot_0
                   align: RIGHT_MID
-                  x: -10
-                  y: -35
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: -70
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_sdot_dim
                   bg_opa: COVER
                   border_width: 0
@@ -749,11 +749,11 @@ lvgl:
               - obj:
                   id: sdot_1
                   align: RIGHT_MID
-                  x: -10
-                  y: -21
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: -42
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_sdot_dim
                   bg_opa: COVER
                   border_width: 0
@@ -762,11 +762,11 @@ lvgl:
               - obj:
                   id: sdot_2
                   align: RIGHT_MID
-                  x: -10
-                  y: -7
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: -14
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_accent
                   bg_opa: COVER
                   border_width: 0
@@ -775,11 +775,11 @@ lvgl:
               - obj:
                   id: sdot_3
                   align: RIGHT_MID
-                  x: -10
-                  y: 7
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: 14
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_sdot_dim
                   bg_opa: COVER
                   border_width: 0
@@ -788,11 +788,11 @@ lvgl:
               - obj:
                   id: sdot_4
                   align: RIGHT_MID
-                  x: -10
-                  y: 21
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: 42
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_sdot_dim
                   bg_opa: COVER
                   border_width: 0
@@ -801,11 +801,11 @@ lvgl:
               - obj:
                   id: sdot_5
                   align: RIGHT_MID
-                  x: -10
-                  y: 35
-                  width: 5
-                  height: 5
-                  radius: 3
+                  x: -20
+                  y: 70
+                  width: 2%
+                  height: 2%
+                  radius: 1%
                   bg_color: col_menu_sdot_dim
                   bg_opa: COVER
                   border_width: 0
@@ -815,11 +815,11 @@ lvgl:
               - obj:
                   id: menu_arrow
                   align: RIGHT_MID
-                  x: -26
-                  y: -35
-                  width: 4
-                  height: 16
-                  radius: 2
+                  x: -52
+                  y: -70
+                  width: 2%
+                  height: 6%
+                  radius: 1%
                   bg_color: col_menu_accent
                   bg_opa: COVER
                   border_width: 0

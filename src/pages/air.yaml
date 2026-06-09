@@ -24,37 +24,37 @@ font:
     glyphs: "\xc2\xb0"
 
 image:
-  - file: smart-home-button/src/assets/images/air_page/fan_off.png
+  - file: src/assets/images/air_page/fan_off.png
     id: img_air_fan_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: smart-home-button/src/assets/images/air_page/fan_on.png
+  - file: src/assets/images/air_page/fan_on.png
     id: img_air_fan_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: smart-home-button/src/assets/images/air_page/power_off.png
+  - file: src/assets/images/air_page/power_off.png
     id: img_air_power_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: smart-home-button/src/assets/images/air_page/power_on.png
+  - file: src/assets/images/air_page/power_on.png
     id: img_air_power_on
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: smart-home-button/src/assets/images/air_page/swing_off.png
+  - file: src/assets/images/air_page/swing_off.png
     id: img_air_swing_off
     type: RGB565
     transparency: alpha_channel
     resize: 25x25
 
-  - file: smart-home-button/src/assets/images/air_page/swing_on.png
+  - file: src/assets/images/air_page/swing_on.png
     id: img_air_swing_on
     type: RGB565
     transparency: alpha_channel
@@ -220,6 +220,11 @@ script:
           static char sbuf[40];
           snprintf(sbuf, sizeof(sbuf), "Temp %.0f\xc2\xb0  Humid %.0f%%", ct, hm);
           lv_label_set_text(id(lbl_air_info), sbuf);
+
+          std::string hvac_mode = id(ha_air_hvac_mode).state;
+          static char hbuf[40];
+          snprintf(hbuf, sizeof(hbuf), "Mode %.0f", hvac_mode);
+          lv_label_set_text(id(lbl_air_hvac_mode), hbuf);
 
           lv_arc_set_value(id(air_set_arc), t);
 
@@ -456,6 +461,15 @@ lvgl:
                   align: CENTER
                   y: 8
                   text: "Temp 28\xc2\xb0  Humid 60%"
+                  text_font: font_air_label
+                  text_color: 0x5A7598
+                  text_align: CENTER
+
+              - label:
+                  id: lbl_air_hvac_mode
+                  align: CENTER
+                  y: 16
+                  text: "Automatic"
                   text_font: font_air_label
                   text_color: 0x5A7598
                   text_align: CENTER

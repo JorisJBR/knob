@@ -7,25 +7,19 @@ substitutions:
   icon_music: "\uF004"
   icon_volume: "\uF005"
 
-# external_components:
-#   - source: ./smart-home-button/components
-#     components: [const, image, generic_image, media_source, sendspin]
-#     refresh: 0s
-  
-
 font:
   - file:
       family: DM+Sans
       weight: 300
       type: gfonts
     id: font_music_title
-    size: 14
+    size: 28
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
 
-  - file: smart-home-button/src/assets/fonts/media_player_icons.ttf
+  - file: src/assets/fonts/media_player_icons.ttf
     id: media_player_icons
-    size: 24
+    size: 48
     bpp: 4
     glyphs:
     - ${icon_play}  # play-solid-full
@@ -48,84 +42,13 @@ color:
     hex: "1A1040"
 
 image:
-  - file: smart-home-button/src/assets/images/place_holder.png
+  - file: src/assets/images/place_holder.png
     id: place_holder
     type: RGB565
     transparency: alpha_channel
-    resize: 80x80
-
-# sendspin:
-#   id: sendspin_hub
-
-# generic_image:
-#   - platform: sendspin
-#     id: sendspin_cover_art
-#     format: jpg
-#     type: rgb565
-#     resize: 80x80
-#     image_source: ALBUM
-#     on_image_decoded:
-#       - logger.log: "Album image decoded"
-#       - lambda: |-
-#           lv_obj_t *obj = id(img_music_cover);
-#           static lv_anim_t a;
-#           lv_anim_init(&a);
-#           lv_anim_set_var(&a, obj);
-#           lv_anim_set_values(&a, LV_OPA_COVER, LV_OPA_TRANSP);
-#           lv_anim_set_time(&a, 200);
-#           lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
-#             lv_obj_set_style_opa((lv_obj_t *)var, v, 0);
-#           });
-#           lv_anim_start(&a);
-#       - delay: 200ms    
-#       - lvgl.image.update:
-#           id: img_music_cover
-#           src: sendspin_cover_art
-#       - lambda: |-
-#           lv_obj_t *obj = id(img_music_cover);
-#           static lv_anim_t a;
-#           lv_anim_init(&a);
-#           lv_anim_set_var(&a, obj);
-#           lv_anim_set_values(&a, LV_OPA_TRANSP, LV_OPA_COVER);
-#           lv_anim_set_time(&a, 300);
-#           lv_anim_set_exec_cb(&a, [](void *var, int32_t v) {
-#             lv_obj_set_style_opa((lv_obj_t *)var, v, 0);
-#           });
-#           lv_anim_start(&a);
+    resize: 160x160
 
 text_sensor:
-#   - platform: sendspin
-#     id: track_title
-#     type: title
-#     on_value:
-#       - lambda: |-
-#           if ( !x.empty() ) 
-#             lv_label_set_text(id(lbl_music_title), x.c_str());
-#           else
-#             lv_label_set_text(id(lbl_music_title), "Ready to Play");
-
-  # - platform: sendspin
-  #   id: track_artist
-  #   type: artist
-
-  # - platform: sendspin
-  #   id: sendspin_playback_state
-  #   type: playback_state
-  #   internal: true
-  #   on_value:
-  #     - lambda: |-
-  #         ESP_LOGD("music", "SendSpin playback state: %s", x.c_str());
-  #         bool playing = (x == "playing");
-  #         id(music_playing) = playing;
-  #         lv_label_set_text(id(play_label), playing ? "${icon_pause}" : "${icon_play}");
-  #         auto duration = id(sendspin_hub).get_track_duration_ms();
-  #         if (duration > 0) {
-  #           id(local_duration_ms) = duration;
-  #           id(local_progress_ms) = id(sendspin_hub).get_track_progress_ms();
-  #           id(local_progress_sync_ms) = millis();
-  #         }
-  #     - script.execute: refresh_music_progress
-
   - platform: homeassistant
     id: media_player_status
     entity_id: ${music_player_entity}
@@ -169,20 +92,6 @@ sensor:
           id(music_volume) = v;
       - script.execute: refresh_music_volume
 
-  # - platform: sendspin
-  #   id: sendspin_controller_volume
-  #   type: controller_volume
-  #   internal: true
-  #   on_value:
-  #     - lambda: |-
-  #         if (x != x) return;
-  #         if ((int32_t)(id(music_volume_override_until_ms) - millis()) > 0) return;
-  #         int v = (int)(x + 0.5f);
-  #         if (v < 0) v = 0;
-  #         if (v > 100) v = 100;
-  #         id(music_volume) = v;
-  #     - script.execute: refresh_music_volume
-
   - platform: homeassistant
     id: ha_media_duration
     entity_id: ${music_player_entity}
@@ -213,6 +122,9 @@ globals:
   - id: music_volume
     type: int
     initial_value: '36'
+  - id: music_volume_step
+    type: int
+    initial_value: '5'
   - id: music_playing
     type: bool
     initial_value: 'false'
@@ -295,35 +207,26 @@ script:
           condition:
             lambda: |-
               return id(media_player_status).state == "playing" ||
-                     id(media_player_status).state == "buffering";
+                    id(media_player_status).state == "buffering";
           then:
             - homeassistant.action:
                 action: media_player.media_pause
                 data:
                   entity_id: ${music_player_entity}
 
-            # - sendspin.command:
-            #     id: sendspin_hub
-            #     command: pause
           else:
             - homeassistant.action:
                 action: media_player.media_play
                 data:
                   entity_id: ${music_player_entity}
                   
-          #   - sendspin.command:
-          #       id: sendspin_hub
-          #       command: play
   - id: music_volume_up
     then:
       - lambda: |-
-          int v = id(music_volume) + 10;
+          int v = id(music_volume) + id(music_volume_step);
           if (v > 100) v = 100;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      # - sendspin.volume_set:
-      #     id: sendspin_hub
-      #     volume: !lambda "return id(music_volume);"
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -338,13 +241,10 @@ script:
   - id: music_volume_down
     then:
       - lambda: |-
-          int v = id(music_volume) - 10;
+          int v = id(music_volume) - id(music_volume_step);
           if (v < 0) v = 0;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      # - sendspin.volume_set:
-      #     id: sendspin_hub
-      #     volume: !lambda "return id(music_volume);"
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -397,9 +297,9 @@ lvgl:
             align: TOP_LEFT
             x: 0
             y: 0
-            width: 240
-            height: 240
-            radius: 120
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_music_bg
             bg_opa: COVER
@@ -410,8 +310,8 @@ lvgl:
               - arc:
                   id: arc_music_progress
                   align: CENTER
-                  width: 232
-                  height: 232
+                  width: 95%
+                  height: 95%
                   rotation: 270
                   start_angle: 0
                   end_angle: 360
@@ -438,9 +338,9 @@ lvgl:
               - obj:
                   x: 54
                   y: 8
-                  width: 120
-                  height: 120
-                  radius: 60
+                  width: 50%
+                  height: 50%
+                  radius: 25%
                   bg_opa: TRANSP
                   border_width: 0
                   clip_corner: true
@@ -456,7 +356,7 @@ lvgl:
                   id: lbl_music_title
                   x: 20
                   y: 134
-                  width: 200
+                  width: 83%
                   text: "Ready to Play"
                   text_font: font_music_title
                   text_color: 0xFFFFFF
@@ -473,19 +373,19 @@ lvgl:
                   y: 150
                   text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 97,  y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 107, y: 155, width: 6, height: 12, radius: 3, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 117, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 127, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 137, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 147, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 157, y: 155, width: 6, height: 12, radius: 3, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_1, x: 194,  y: 310, width: 12, height: 24, radius: 6, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, x: 214, y: 310, width: 12, height: 24, radius: 6, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, x: 234, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, x: 254, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, x: 274, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, x: 294, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, x: 314, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
-                  x: 62
-                  y: 184
-                  width: 24
-                  height: 24
+                  x: 124
+                  y: 368
+                  width: 10%
+                  height: 10%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
@@ -505,12 +405,12 @@ lvgl:
                         align: CENTER
 
               - button:
-                  x: 102
-                  y: 175
+                  x: 204
+                  y: 350
                   id: play_btn
-                  width: 44
-                  height: 44
-                  radius: 22
+                  width: 11%
+                  height: 11%
+                  radius: 5%
                   bg_color: col_music_play_btn
                   bg_opa: COVER
                   shadow_opa: TRANSP
@@ -531,10 +431,10 @@ lvgl:
 
               - button:
                   id: next_btn
-                  x: 161
-                  y: 184
-                  width: 24
-                  height: 24
+                  x: 322
+                  y: 368
+                  width: 10%
+                  height: 10%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP

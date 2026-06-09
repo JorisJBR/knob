@@ -1,21 +1,23 @@
 packages:
-  hardware:    !include smart-home-button/src/main/hardware-crowpanel-2_1.yaml
-  clock_page:  !include smart-home-button/src/pages/main.yaml
-  load_page:   !include smart-home-button/src/pages/load.yaml
-  menu_page:   !include smart-home-button/src/pages/menu.yaml
-  light_page:  !include smart-home-button/src/pages/light.yaml
-  air_page:    !include smart-home-button/src/pages/air.yaml
-  music_page:  !include smart-home-button/src/pages/music.yaml
-  fridge_page: !include smart-home-button/src/pages/fridge.yaml
-  timer_page:  !include smart-home-button/src/pages/timer.yaml
+  hardware:    !include src/main/hardware-crowpanel-2_1.yaml
+  load_page:   !include src/pages/load.yaml
+  clock_page:  !include src/pages/clock.yaml
+  menu_page:   !include src/pages/menu.yaml
+  light_page:  !include src/pages/light.yaml
+  air_page:    !include src/pages/air.yaml
+  music_page:  !include src/pages/music.yaml
+  fridge_page: !include src/pages/fridge.yaml
+  timer_page:  !include src/pages/timer.yaml
 
+# Change these to match your Home Assistant instance before flashing.
 substitutions:
-  # Change these to match your Home Assistant instance before flashing.
+  timezone: Europe/Amsterdam
   weather_entity: weather.buienradar
   climate_entity: climate.airco_beneden
   music_player_entity: media_player.woonkamer
   light_entity: light.spots_woonkamer
 
+# Hardware specific?
 esphome:
   name: knob
   friendly_name: Knob
@@ -47,6 +49,7 @@ esphome:
             brightness: 100%
         - script.execute: update_loading_page
 
+# Hardware specific
 esp32:
   board: esp32-s3-devkitc-1
   framework:
@@ -95,66 +98,7 @@ wifi:
     ssid: !secret ap_ssid
     password: !secret ap_password
 
-# external_components:
-#   - source: github://sEbola76/Makerfabs
-#     components: [ cst826 ]
-
 captive_portal:
-
-globals:
-  - id: ha_connected
-    type: bool
-    initial_value: 'false'
-
-image:
-  - file: src/assets/images/logo.png
-    id: logo_img
-    type: RGB565
-    transparency: alpha_channel
-    resize: 72x72
-  - file: src/assets/images/scene.png
-    id: img_scene
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/bulb.png
-    id: img_light
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/ac.png
-    id: img_ac
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/music.png
-    id: img_music
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/palette.png
-    id: img_palette
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/brightness.png
-    id: img_brightness
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/light.png
-    id: img_dengguang
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-
-color:
-  - id: col_bg
-    hex: "050812"
-  - id: col_text_pri
-    hex: "EEF2FF"
-  - id: col_text_sec
-    hex: "6B7FCC"
 
 lvgl:
   displays:
