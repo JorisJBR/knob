@@ -402,7 +402,7 @@ script:
           static char bufClock[64];
           sprintf(bufTimer, "%d minutes", 5);
           sprintf(bufFridge, "%dC - %dC", -19, 4);
-          sprintf(bufLight, "%d %%", (int)id(ha_light_brightness));
+          sprintf(bufLight, "%d %%", (int)id(light_brightness));
           sprintf(bufAc, "%s - %.1fC", id(ha_air_hvac_mode).state.c_str(), id(ha_air_target_temp).state);
           sprintf(bufMusic, "%s", id(media_player_status).state.c_str());
           sprintf(bufClock, "%.1fC", id(ha_temperature).state);

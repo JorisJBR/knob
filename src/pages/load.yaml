@@ -77,6 +77,22 @@ globals:
   - id: ha_connected
     type: bool
     initial_value: 'false'
+  # - id: current_page
+  #   type: Page*
+  #   restore_value: no
+  #   initial_value: 'nullptr'
+  - id: last_interaction
+    type: unsigned long
+    initial_value: '0'
+  - id: screen_state
+    type: int
+    initial_value: '0'
+  - id: screen_dim_seconds
+    type: int
+    initial_value: '25'
+  - id: screen_off_seconds
+    type: int
+    initial_value: '30'
 
 interval:
   - interval: 400ms
@@ -93,6 +109,32 @@ interval:
                   id(dot_tick) == 1 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
                 lv_obj_set_style_bg_color(id(dot_2),
                   id(dot_tick) == 2 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
+      - if: 
+          condition: 
+            lambda: "return millis() - id(last_interaction) > (int)id(screen_off_seconds) * 1000 && id(screen_state) != 2;"
+          then: 
+            - lambda: |-
+                id(screen_state) = 2;
+            - light.turn_off:
+                id: display_backlight
+      - if: 
+          condition: 
+            lambda: "return millis() - id(last_interaction) > (int)id(screen_dim_seconds) * 1000 && id(screen_state) == 0;"
+          then: 
+            - lambda: |-
+                id(screen_state) = 1;
+            - light.turn_on:
+                id: display_backlight
+                brightness: 50%
+      - if: 
+          condition: 
+            lambda: "return millis() - id(last_interaction) <= (int)id(screen_dim_seconds) * 1000 && id(screen_state) != 0;"
+          then: 
+            - lambda: |-
+                id(screen_state) = 0;
+            - light.turn_on:
+                id: display_backlight
+                brightness: 100%
 
 script:
   - id: update_loading_page
@@ -145,54 +187,65 @@ script:
             lv_label_set_text(id(lbl_sub),    "Home Assistant");
             id(check_boot_status).execute();
           }
+      - script.execute: sync_ha_states
 
-  - id: dial_back
+  - id: sync_ha_states
     then:
       - lambda: |-
-          if (id(in_menu)) {
-            id(close_menu).execute();
-            return;
-          }
-          if (id(in_clock)){
-            id(close_clock).execute();
-            return;
-          }
-          if (id(in_light) || id(in_colorpicker)) {
-            id(close_light).execute();
-            return;
-          }
-          if (id(in_air)) {
-            id(close_air).execute();
-            return;
-          }
-          if (id(in_music)) {
-            id(in_music) = false;
-            id(open_menu).execute();
-            return;
-          }
-          if (id(in_timer)) {
-            id(close_timer).execute();
-            return;
-          }
-          if (id(in_fridge)) {
-            id(in_fridge) = false;
-            id(open_menu).execute();
-            return;
-          }
-          id(open_menu).execute();
+          id(light_brightness) = id(ha_light_brightness).state / 100.0f;
+          id(light_on) = (bool)id(ha_light_on);
+          id(air_temp) = (int)id(ha_air_target_temp);
+          id(music_volume) = (int)id(ha_media_volume);
+          // ESP_LOGI("", id(ha_light_color));
+          // int r, g, b;
+          // sscanf("(255, 255, 255)", "(%d, %d, %d)", &r, &g, &b);
+          // id(light_color_r) = r;
+          // id(light_color_g) = g;
+          // id(light_color_b) = b;
 
-  - id: first_press
+  - id: double_click
     then:
       - if:
           condition:
             lambda: 'return !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
-            - script.execute: dial_back
+            - lambda: |-
+                if (id(in_menu)) {
+                  id(close_menu).execute();
+                  return;
+                }
+                if (id(in_clock)){
+                  id(close_clock).execute();
+                  return;
+                }
+                if (id(in_light) || id(in_colorpicker)) {
+                  id(close_light).execute();
+                  return;
+                }
+                if (id(in_air)) {
+                  id(close_air).execute();
+                  return;
+                }
+                if (id(in_music)) {
+                  id(in_music) = false;
+                  id(open_menu).execute();
+                  return;
+                }
+                if (id(in_timer)) {
+                  id(close_timer).execute();
+                  return;
+                }
+                if (id(in_fridge)) {
+                  id(in_fridge) = false;
+                  id(open_menu).execute();
+                  return;
+                }
+                id(open_menu).execute();
             - delay: 250ms
             - globals.set: {id: button_debounce, value: 'false'}
 
-  - id: second_press
+  - id: single_click
     then:
       - if:
           condition:

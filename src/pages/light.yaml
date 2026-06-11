@@ -74,7 +74,7 @@ color:
 globals:
   - id: light_brightness
     type: int
-    initial_value: '75' # Get from light state
+    initial_value: '75'
   - id: in_light
     type: bool
     initial_value: 'false'
@@ -108,36 +108,23 @@ sensor:
     id: ha_light_brightness
     entity_id: ${light_entity}
     attribute: brightness
-    on_value:
-      - script.execute: refresh_light_arc
+    # on_value:
+      # - script.execute: sync_ha_states
 
   - platform: homeassistant
-    id: ha_light_r
+    id: ha_light_color
     entity_id: ${light_entity}
     attribute: rgb_color
-    on_value:
-      - script.execute: refresh_light_arc
+    # on_value:
+      # - script.execute: sync_ha_states
 
-  - platform: homeassistant
-    id: ha_light_g
-    entity_id: ${light_entity}
-    attribute: rgb_color
-    on_value:
-      - script.execute: refresh_light_arc
-
-  - platform: homeassistant
-    id: ha_light_b
-    entity_id: ${light_entity}
-    attribute: rgb_color
-    on_value:
-      - script.execute: refresh_light_arc
 
 binary_sensor:
   - platform: homeassistant
     id: ha_light_on
     entity_id: ${light_entity}
-    on_state:
-      - script.execute: refresh_light_arc
+    # on_state:
+    #   - script.execute: sync_ha_states
 
 text_sensor:
   - platform: homeassistant
@@ -234,7 +221,7 @@ script:
           id(light_color_r) = r8;
           id(light_color_g) = g8;
           id(light_color_b) = b8;
-            id(light_gradient_mode) = -1;
+          id(light_gradient_mode) = -1;
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: in_light, value: 'true'}
       - script.execute: refresh_light_arc
@@ -291,8 +278,7 @@ script:
           }
           lv_color_t col = lv_color_make(r8, g8, b8);
           lv_obj_set_style_bg_color(id(cw_color_circle), col, LV_STATE_DEFAULT);
-          lv_obj_set_style_arc_color(id(cp_arc), col,
-            LV_PART_INDICATOR);
+          lv_obj_set_style_arc_color(id(cp_arc), col, LV_PART_INDICATOR);
           static char hbuf[7];
           snprintf(hbuf, sizeof(hbuf), "%02X%02X%02X", r8, g8, b8);
           lv_label_set_text(id(lbl_hex_val), hbuf);
@@ -358,8 +344,8 @@ script:
           // Center the "N%" pair — no ring collision at any value including 100
           lv_obj_update_layout(id(lbl_brightness_num));
           lv_coord_t nw = lv_obj_get_width(id(lbl_brightness_num));
-          int pct_w = 16, gap = 3;
-          int pair_x = 120 - (nw + gap + pct_w) / 2;
+          int pct_w = 32, gap = 6;
+          int pair_x = 240 - (nw + gap + pct_w) / 2;
           lv_obj_set_x(id(lbl_brightness_num), pair_x);
           lv_obj_set_x(id(lbl_brightness_pct), pair_x + nw + gap);
           // Sync ALL theme-coloured elements from globals
@@ -460,8 +446,8 @@ lvgl:
               - label:
                   id: lbl_brightness_num
                   align: CENTER
-                  x: 144
-                  y: -70
+                  x: 0
+                  y: 0
                   text: "75"
                   text_font: font_light_big
                   text_color: 0xFFFFFF

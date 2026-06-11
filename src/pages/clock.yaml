@@ -107,7 +107,7 @@ time:
                 auto t = id(rtctime).now();
                 const char* days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
                 const char* day = (t.day_of_week >= 1 && t.day_of_week <= 7) ? days[t.day_of_week - 1] : "---";
-                sprintf(buf, "%s  %02d/%02d", day, t.month, t.day_of_month);
+                sprintf(buf, "%s  %02d/%02d", day, t.day_of_month, t.month);
                 return buf;
           - lvgl.arc.update:
               id: arc_minute
