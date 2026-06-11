@@ -192,7 +192,7 @@ script:
   - id: sync_ha_states
     then:
       - lambda: |-
-          id(light_brightness) = id(ha_light_brightness).state / 100.0f;
+          id(light_brightness) = id(ha_light_brightness).state;
           id(light_on) = (bool)id(ha_light_on);
           id(air_temp) = (int)id(ha_air_target_temp);
           id(music_volume) = (int)id(ha_media_volume);
