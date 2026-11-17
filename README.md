@@ -9,11 +9,11 @@ I'd like to keep everything in ESPHome LVGL yaml as much as possible, avoiding p
 
 
 ## Features
-Manual navigation through pages using double press to open the menu and selecting a page using single press
-Wake the display on input or motion if supported
-Automatic dimming and turning off the display after a delay
-Wake the display from home assistant automation and show a selected page
-Wake the display from home assistant automation and show custom notification text/image if possible
+- Manual navigation through pages using double press to open the menu and selecting a page using single press
+- Wake the display on input or motion if supported
+- Automatic dimming and turning off the display after a delay
+- Wake the display from home assistant automation and show a selected page
+- Wake the display from home assistant automation and show custom notification text/image if possible
 
 
 ## Entity pages
