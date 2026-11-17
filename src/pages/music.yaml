@@ -76,9 +76,11 @@ text_sensor:
             id(music_playing) = true;
             lv_label_set_text(id(play_label), "${icon_pause}");
           }
-          // read track progress and duration when state change
-          auto progress = int(ha_media_position);
-          auto duration = int(ha_media_duration);
+          // read track progress and duration when state change (HA reports seconds)
+          float pos_s = id(ha_media_position).state;
+          float dur_s = id(ha_media_duration).state;
+          int progress = isnan(pos_s) ? 0 : (int)(pos_s * 1000.0f + 0.5f);
+          int duration = isnan(dur_s) ? 0 : (int)(dur_s * 1000.0f + 0.5f);
           if (duration > 0) {
             id(local_duration_ms) = duration;
             id(local_progress_ms) = progress;
@@ -476,8 +478,10 @@ interval:
           lv_label_set_text(id(play_label), playing ? "${icon_pause}" : "${icon_play}");
 
           // Read HA media_player attributes
-          uint32_t spin_pos = int(ha_media_position);
-          auto spin_dur = int(ha_media_duration);
+          float spin_pos_s = id(ha_media_position).state;
+          float spin_dur_s = id(ha_media_duration).state;
+          int spin_pos = isnan(spin_pos_s) ? 0 : (int)(spin_pos_s * 1000.0f + 0.5f);
+          int spin_dur = isnan(spin_dur_s) ? 0 : (int)(spin_dur_s * 1000.0f + 0.5f);
           if (spin_dur > 0) {
             id(local_duration_ms) = spin_dur;
             if (spin_pos != id(last_spin_progress_ms)) {

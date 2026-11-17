@@ -113,11 +113,12 @@ sensor:
     attribute: brightness
     on_value:
       - lambda: |-
-          if (x != x) return;
-          if (x == id(light_brightness)) return;
-          if (x < 0) x = 0;
-          if (x > 100) x = 100;
-          id(light_brightness) = x;
+          if (isnan(x)) return;
+          // HA reports brightness as 0-255, light_brightness is a percentage
+          int pct = (int)(x * 100.0f / 255.0f + 0.5f);
+          if (pct == id(light_brightness)) return;
+          id(light_brightness) = pct < 0 ? 0 : (pct > 100 ? 100 : pct);
+      - script.execute: refresh_light_arc
 
   - platform: homeassistant
     id: ha_light_color
@@ -128,8 +129,9 @@ binary_sensor:
   - platform: homeassistant
     id: ha_light_on
     entity_id: ${light_entity} #  !lambda "return id(light_entity).c_str();"
-    # on_state:
-    #   - script.execute: sync_ha_states
+    on_state:
+      - lambda: 'id(light_on) = x;'
+      - script.execute: refresh_light_arc
 
 text_sensor:
   - platform: homeassistant
@@ -179,7 +181,7 @@ script:
                   #   - !lambda "return id(light_color_r);"
                   #   - !lambda "return id(light_color_g);"
                   #   - !lambda "return id(light_color_b);"
-                  brightness_pct: !lambda "return id(light_brightness) / 100.0;"
+                  brightness_pct: !lambda "return id(light_brightness);"
           else:
             - homeassistant.service:
                 service: light.turn_off
@@ -242,7 +244,7 @@ script:
                   #   - !lambda "return id(light_color_r);"
                   #   - !lambda "return id(light_color_g);"
                   #   - !lambda "return id(light_color_b);"
-                  brightness_pct: !lambda "return id(light_brightness) / 100.0;"
+                  brightness_pct: !lambda "return id(light_brightness);"
       - lvgl.page.show:
           id: page_light
           animation: MOVE_RIGHT
@@ -339,7 +341,7 @@ script:
                   #   - !lambda "return id(light_color_r);"
                   #   - !lambda "return id(light_color_g);"
                   #   - !lambda "return id(light_color_b);"
-                  brightness_pct: !lambda "return id(light_brightness) / 100.0;"
+                  brightness_pct: !lambda "return id(light_brightness);"
 
   - id: refresh_light_arc
     then:

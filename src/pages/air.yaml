@@ -109,7 +109,7 @@ sensor:
     entity_id: ${climate_entity}
     attribute: temperature
     on_value:
-      - lambda: 'id(air_temp) = (int)(x) * 2;'
+      - lambda: 'if (!isnan(x)) id(air_temp) = (int)(x * 2.0f + 0.5f);'
       - script.execute: refresh_air
 
   - platform: homeassistant
@@ -228,7 +228,7 @@ script:
 
           std::string hvac_mode = id(ha_air_hvac_mode).state;
           static char hbuf[40];
-          snprintf(hbuf, sizeof(hbuf), "Mode %.0f", hvac_mode);
+          snprintf(hbuf, sizeof(hbuf), "Mode %s", hvac_mode.c_str());
           lv_label_set_text(id(lbl_air_hvac_mode), hbuf);
 
           lv_arc_set_value(id(air_set_arc), t);
