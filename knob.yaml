@@ -15,7 +15,7 @@ substitutions:
   climate_entity: climate.airco_beneden
   music_player_entity: media_player.woonkamer
   light_entity: light.spots_woonkamer
-  todo_entity: todo.todo
+  todo_entity: todo.to_do
   #calendar_entity: ?
   #camera_entity: ?
   #energy_page: ?
