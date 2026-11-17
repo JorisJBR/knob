@@ -70,6 +70,12 @@ globals:
   - id: in_weather
     type: bool
     initial_value: 'false'
+  - id: next_hour_temperature
+    type: float
+    initial_value: '0'
+  - id: next_hour_condition
+    type: std::string
+    initial_value: '"Waiting for forecast"'
 
 script:
   - id: open_clock
@@ -135,8 +141,12 @@ script:
           on_success:
             - lambda: |-
                 JsonObjectConst next_hour = response["response"]["${weather_entity}"]["forecast"][0];
-                float next_temperature = next_hour["temperature"].as<float>();
-                ESP_LOGI("weather", "Temperature next hour: %.1f", next_temperature);
+                id(next_hour_temperature) = next_hour["temperature"] | 0.0f;
+                id(next_hour_condition) = next_hour["condition"] | "Forecast unavailable";
+                static char forecast_temp[12];
+                snprintf(forecast_temp, sizeof(forecast_temp), "%.0f\xc2\xb0", id(next_hour_temperature));
+                lv_label_set_text(id(lbl_weather), forecast_temp);
+                lv_label_set_text(id(lbl_weather_condition), id(next_hour_condition).c_str());
 
 time:
   - platform: homeassistant
@@ -226,6 +236,11 @@ lvgl:
       bg_color: col_bg
       bg_opa: COVER
       scrollbar_mode: "OFF"
+      on_load:
+        - lambda: |-
+            int screen_width = lv_obj_get_width(lv_scr_act());
+            lv_obj_set_style_text_font(id(lbl_clock),
+              screen_width >= 400 ? id(font_clock) : id(font_val), 0);
       widgets:
 
         - arc:
@@ -282,7 +297,7 @@ lvgl:
         - label:
             id: lbl_clock
             align: CENTER
-            y: -100
+            y: -21%
             text_font: font_clock
             text_color: col_text_pri
             text: "00:00"
@@ -290,29 +305,29 @@ lvgl:
         - label:
             id: lbl_date
             align: CENTER
-            y: -14
+            y: -3%
             text_font: font_date
             text_color: col_text_lbl
             text: "000 0/0"
 
         - label:
             align: CENTER
-            x: -116
-            y: 26
+            x: -24%
+            y: 5%
             text_font: font_lbl
             text_color: col_text_temp
             text: "TEMP"
         - label:
             align: CENTER
             x: 0
-            y: 26
+            y: 5%
             text_font: font_lbl
             text_color: col_text_hum
             text: "HUM"
         - label:
             align: CENTER
-            x: 116
-            y: 26
+            x: 24%
+            y: 5%
             text_font: font_lbl
             text_color: col_text_aqi
             text: "WTHR"
@@ -320,8 +335,8 @@ lvgl:
         - label:
             id: lbl_temp
             align: CENTER
-            x: -116
-            y: 62
+            x: -24%
+            y: 13%
             text_font: font_val
             text_color: col_text_temp
             text: "--"
@@ -329,22 +344,22 @@ lvgl:
             id: lbl_humidity
             align: CENTER
             x: 0
-            y: 62
+            y: 13%
             text_font: font_val
             text_color: col_text_hum
             text: "--"
         - label:
             id: lbl_wthr
             align: CENTER
-            x: 116
-            y: 62
+            x: 24%
+            y: 13%
             text_font: font_val
             text_color: col_text_aqi
             text: "--"
 
         - obj:
             align: CENTER
-            y: 86
+            y: 18%
             width: 75%
             height: 1
             bg_color: col_divider
@@ -354,15 +369,15 @@ lvgl:
 
         - label:
             align: CENTER
-            x: -60
-            y: 120
+            x: -12.5%
+            y: 25%
             text_font: font_lbl
             text_color: col_text_pres
             text: "PRESSURE"
         - label:
             align: CENTER
-            x: 80
-            y: 120
+            x: 16.7%
+            y: 25%
             text_font: font_lbl
             text_color: col_text_wind
             text: "WIND"
@@ -370,16 +385,16 @@ lvgl:
         - label:
             id: lbl_pressure
             align: CENTER
-            x: -60
-            y: 152
+            x: -12.5%
+            y: 31.7%
             text_font: font_val_s
             text_color: col_text_pres
             text: "--"
         - label:
             id: lbl_cloud
             align: CENTER
-            x: 80
-            y: 152
+            x: 16.7%
+            y: 31.7%
             text_font: font_val_s
             text_color: col_text_wind
             text: "--"
@@ -390,10 +405,25 @@ lvgl:
       scrollbar_mode: "OFF"
       widgets:
         - label:
+            align: CENTER
+            y: -20%
+            text: "NEXT HOUR"
+            text_font: font_lbl
+            text_color: col_text_lbl
+        - label:
             id: lbl_weather
             align: CENTER
-            x: 80
-            y: 152
+            x: 0
+            y: -4%
+            text_font: font_clock
+            text_color: col_text_temp
+            text: "--°"
+        - label:
+            id: lbl_weather_condition
+            align: CENTER
+            x: 0
+            y: 12%
+            width: 82%
             text_font: font_val_s
             text_color: col_text_wind
-            text: "Test weather forecast"
+            text: "Forecast unavailable"

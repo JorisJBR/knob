@@ -92,17 +92,31 @@ globals:
     initial_value: '0'    # 0=temp, 1=fan speed
   - id: air_fan_speed
     type: int
-    initial_value: '3'    # 1-5
+    initial_value: '0'
+  - id: air_fan_modes
+    type: std::vector<std::string>
+    restore_value: false
+    initial_value: 'std::vector<std::string>()'
+  - id: air_swing_modes
+    type: std::vector<std::string>
+    restore_value: false
+    initial_value: 'std::vector<std::string>()'
+  - id: air_swing_mode_index
+    type: int
+    initial_value: '0'
   - id: air_btn_power_active
     type: bool
     initial_value: 'true'
   - id: air_btn_swing_active
     type: bool
     initial_value: 'false'
-  - id: air_encoder_step_accum
-    type: int
-    initial_value: '0'
   - id: air_temp_override_until_ms
+    type: uint32_t
+    initial_value: '0'
+  - id: air_fan_override_until_ms
+    type: uint32_t
+    initial_value: '0'
+  - id: air_swing_override_until_ms
     type: uint32_t
     initial_value: '0'
 
@@ -145,12 +159,107 @@ text_sensor:
       - lambda: 'id(air_btn_power_active) = (x != "off");'
       - script.execute: refresh_air
 
+  - platform: homeassistant
+    id: ha_air_fan_modes
+    entity_id: ${climate_entity}
+    attribute: fan_modes
+    internal: true
+    on_value:
+      - lambda: |-
+          id(air_fan_modes).clear();
+          std::string mode;
+          for (char c : x) {
+            if (c == '[' || c == ']' || c == '\'' || c == '"') continue;
+            if (c == ',') {
+              while (!mode.empty() && mode.front() == ' ') mode.erase(mode.begin());
+              while (!mode.empty() && mode.back() == ' ') mode.pop_back();
+              if (!mode.empty()) id(air_fan_modes).push_back(mode);
+              mode.clear();
+            } else {
+              mode += c;
+            }
+          }
+          while (!mode.empty() && mode.front() == ' ') mode.erase(mode.begin());
+          while (!mode.empty() && mode.back() == ' ') mode.pop_back();
+          if (!mode.empty()) id(air_fan_modes).push_back(mode);
+          for (size_t i = 0; i < id(air_fan_modes).size(); i++) {
+            if (id(air_fan_modes)[i] == id(ha_air_fan_mode).state) {
+              id(air_fan_speed) = i;
+              break;
+            }
+          }
+      - script.execute: refresh_air
+
+  - platform: homeassistant
+    id: ha_air_fan_mode
+    entity_id: ${climate_entity}
+    attribute: fan_mode
+    internal: true
+    on_value:
+      - lambda: |-
+          if ((int32_t)(id(air_fan_override_until_ms) - millis()) > 0) return;
+          for (size_t i = 0; i < id(air_fan_modes).size(); i++) {
+            if (id(air_fan_modes)[i] == x) {
+              id(air_fan_speed) = i;
+              break;
+            }
+          }
+      - script.execute: refresh_air
+
+  - platform: homeassistant
+    id: ha_air_swing_modes
+    entity_id: ${climate_entity}
+    attribute: swing_modes
+    internal: true
+    on_value:
+      - lambda: |-
+          id(air_swing_modes).clear();
+          std::string mode;
+          for (char c : x) {
+            if (c == '[' || c == ']' || c == '\'' || c == '"') continue;
+            if (c == ',') {
+              while (!mode.empty() && mode.front() == ' ') mode.erase(mode.begin());
+              while (!mode.empty() && mode.back() == ' ') mode.pop_back();
+              if (!mode.empty()) id(air_swing_modes).push_back(mode);
+              mode.clear();
+            } else {
+              mode += c;
+            }
+          }
+          while (!mode.empty() && mode.front() == ' ') mode.erase(mode.begin());
+          while (!mode.empty() && mode.back() == ' ') mode.pop_back();
+          if (!mode.empty()) id(air_swing_modes).push_back(mode);
+          for (size_t i = 0; i < id(air_swing_modes).size(); i++) {
+            if (id(air_swing_modes)[i] == id(ha_air_swing_mode).state) {
+              id(air_swing_mode_index) = i;
+              id(air_btn_swing_active) = id(air_swing_modes)[i] != "off";
+              break;
+            }
+          }
+      - script.execute: refresh_air
+
+  - platform: homeassistant
+    id: ha_air_swing_mode
+    entity_id: ${climate_entity}
+    attribute: swing_mode
+    internal: true
+    on_value:
+      - lambda: |-
+          if ((int32_t)(id(air_swing_override_until_ms) - millis()) > 0) return;
+          for (size_t i = 0; i < id(air_swing_modes).size(); i++) {
+            if (id(air_swing_modes)[i] == x) {
+              id(air_swing_mode_index) = i;
+              id(air_btn_swing_active) = x != "off";
+              break;
+            }
+          }
+      - script.execute: refresh_air
+
 script:
   - id: open_air
     then:
       - globals.set: {id: in_air, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
-      - globals.set: {id: air_encoder_step_accum, value: '0'}
       - script.execute: refresh_air
       - lvgl.page.show:
           id: page_air
@@ -159,7 +268,6 @@ script:
   - id: close_air
     then:
       - globals.set: {id: in_air, value: 'false'}
-      - globals.set: {id: air_encoder_step_accum, value: '0'}
       - script.execute: open_menu
 
   - id: air_temp_up
@@ -195,31 +303,80 @@ script:
   - id: air_toggle_mode
     then:
       - lambda: |-
-          id(air_mode) = (id(air_mode) == 0) ? 1 : 0;
-          id(air_encoder_step_accum) = 0;
+          if (id(air_mode) == 0) {
+            if (!id(air_fan_modes).empty()) id(air_mode) = 1;
+          } else {
+            id(air_mode) = 0;
+          }
       - script.execute: refresh_air
 
   - id: air_fan_up
     then:
       - lambda: |-
-          int v = id(air_fan_speed) + 1;
-          if (v > 5) v = 5;
-          id(air_fan_speed) = v;
+          if (id(air_fan_modes).empty()) return;
+          id(air_fan_speed) = (id(air_fan_speed) + 1) % id(air_fan_modes).size();
+          id(air_fan_override_until_ms) = millis() + 1200;
       - script.execute: refresh_air
+      - script.execute: air_fan_commit
 
   - id: air_fan_down
     then:
       - lambda: |-
-          int v = id(air_fan_speed) - 1;
-          if (v < 1) v = 1;
-          id(air_fan_speed) = v;
+          if (id(air_fan_modes).empty()) return;
+          int count = id(air_fan_modes).size();
+          id(air_fan_speed) = (id(air_fan_speed) + count - 1) % count;
+          id(air_fan_override_until_ms) = millis() + 1200;
       - script.execute: refresh_air
+      - script.execute: air_fan_commit
+
+  - id: air_fan_commit
+    mode: restart
+    then:
+      - delay: 150ms
+      - if:
+          condition:
+            lambda: 'return !id(air_fan_modes).empty();'
+          then:
+            - homeassistant.service:
+                service: climate.set_fan_mode
+                data:
+                  entity_id: ${climate_entity}
+                  fan_mode: !lambda 'return id(air_fan_modes)[id(air_fan_speed)];'
+
+  - id: air_swing_toggle
+    then:
+      - lambda: |-
+          if (id(air_swing_modes).size() < 2) return;
+          id(air_swing_mode_index) = (id(air_swing_mode_index) + 1) % id(air_swing_modes).size();
+          id(air_btn_swing_active) = id(air_swing_modes)[id(air_swing_mode_index)] != "off";
+          id(air_swing_override_until_ms) = millis() + 1200;
+      - script.execute: refresh_air
+      - script.execute: air_swing_commit
+
+  - id: air_swing_commit
+    mode: restart
+    then:
+      - delay: 150ms
+      - if:
+          condition:
+            lambda: 'return !id(air_swing_modes).empty();'
+          then:
+            - homeassistant.service:
+                service: climate.set_swing_mode
+                data:
+                  entity_id: ${climate_entity}
+                  swing_mode: !lambda 'return id(air_swing_modes)[id(air_swing_mode_index)];'
 
   - id: refresh_air
     then:
       - lambda: |-
+          int screen_width = lv_obj_get_width(lv_scr_act());
+          lv_obj_set_style_text_font(id(lbl_air_temp),
+            screen_width >= 400 ? id(font_air_temp) : id(font_air_label), 0);
+          lv_obj_set_style_text_font(id(lbl_air_temp_degree),
+            screen_width >= 400 ? id(font_air_degree) : id(font_air_label), 0);
           int t = id(air_temp);
-          static char tbuf[10];
+          static char tbuf[16];
           if (t % 2 == 0) {
             snprintf(tbuf, sizeof(tbuf), "%d", t / 2);
           } else {
@@ -256,7 +413,8 @@ script:
           lv_obj_set_style_border_width(id(btn_air_swing), id(air_btn_swing_active) ? 2 : 0, LV_PART_MAIN);
           lv_obj_set_style_border_color(id(btn_air_swing), lv_color_hex(0x00D7FF), LV_PART_MAIN);
 
-          int fs = id(air_fan_speed);
+          int fs = id(air_fan_modes).empty() ? 0 : id(air_fan_speed) + 1;
+          if (fs > 5) fs = 5;
           lv_obj_set_style_arc_color(id(fan_seg_1), lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
           lv_obj_set_style_arc_color(id(fan_seg_2), lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
           lv_obj_set_style_arc_color(id(fan_seg_3), lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
@@ -267,6 +425,8 @@ script:
           lv_obj_set_style_arc_opa(id(fan_seg_3), fs >= 3 ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_INDICATOR);
           lv_obj_set_style_arc_opa(id(fan_seg_4), fs >= 4 ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_INDICATOR);
           lv_obj_set_style_arc_opa(id(fan_seg_5), fs >= 5 ? LV_OPA_COVER : LV_OPA_TRANSP, LV_PART_INDICATOR);
+          lv_obj_set_style_opa(id(btn_air_fan), id(air_fan_modes).empty() ? 100 : 255, LV_PART_MAIN);
+          lv_obj_set_style_opa(id(btn_air_swing), id(air_swing_modes).size() < 2 ? 100 : 255, LV_PART_MAIN);
 
 lvgl:
   pages:
@@ -292,8 +452,9 @@ lvgl:
             scrollbar_mode: "OFF"
             widgets:
               - obj:
-                  x: 10
-                  y: 10
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 90%
                   height: 90%
                   radius: 45%
@@ -304,8 +465,9 @@ lvgl:
                   scrollbar_mode: "OFF"
 
               - arc:
-                  x: 10
-                  y: 10
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 95%
                   height: 95%
                   start_angle: 45
@@ -329,8 +491,9 @@ lvgl:
 
               - arc:
                   id: air_set_arc
-                  x: 10
-                  y: 10
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 85%
                   height: 85%
                   start_angle: 45
@@ -460,7 +623,7 @@ lvgl:
               - label:
                   id: lbl_air_temp
                   align: CENTER
-                  y: -45
+                  y: -10%
                   text: "24"
                   text_font: font_air_temp
                   text_color: 0xFFFFFF
@@ -469,8 +632,8 @@ lvgl:
               - label:
                   id: lbl_air_temp_degree
                   align: CENTER
-                  x: 50
-                  y: -63
+                  x: 10%
+                  y: -14%
                   text: "°"
                   text_font: font_air_degree
                   text_color: 0xFFFFFF
@@ -479,7 +642,7 @@ lvgl:
               - label:
                   id: lbl_air_info
                   align: CENTER
-                  y: 8
+                  y: 2%
                   text: "Temp 28\xc2\xb0  Humid 60%"
                   text_font: font_air_label
                   text_color: 0x5A7598
@@ -488,7 +651,7 @@ lvgl:
               - label:
                   id: lbl_air_hvac_mode
                   align: CENTER
-                  y: 32
+                  y: 7%
                   text: "Automatic"
                   text_font: font_air_label
                   text_color: 0x5A7598
@@ -497,11 +660,11 @@ lvgl:
               - obj:
                   id: btn_air_fan
                   align: BOTTOM_MID
-                  x: -46
-                  y: -50
-                  width: 7%
-                  height: 7%
-                  radius: 4%
+                  x: -16%
+                  y: -12%
+                  width: 12%
+                  height: 12%
+                  radius: 50%
                   bg_color: col_air_btn_bg
                   bg_opa: COVER
                   border_width: 0
@@ -519,10 +682,10 @@ lvgl:
                   id: btn_air_power
                   align: BOTTOM_MID
                   x: 0
-                  y: -50
-                  width: 7%
-                  height: 7%
-                  radius: 4%
+                  y: -12%
+                  width: 12%
+                  height: 12%
+                  radius: 50%
                   bg_color: col_air_btn_mid
                   bg_opa: COVER
                   border_width: 1
@@ -547,20 +710,18 @@ lvgl:
               - obj:
                   id: btn_air_swing
                   align: BOTTOM_MID
-                  x: 46
-                  y: -50
-                  width: 7%
-                  height: 7%
-                  radius: 4%
+                  x: 16%
+                  y: -12%
+                  width: 12%
+                  height: 12%
+                  radius: 50%
                   bg_color: col_air_btn_bg
                   bg_opa: COVER
                   border_width: 0
                   clickable: true
                   scrollbar_mode: "OFF"
                   on_click:
-                    - lambda: |-
-                        id(air_btn_swing_active) = !id(air_btn_swing_active);
-                    - script.execute: refresh_air
+                    - script.execute: air_swing_toggle
                   widgets:
                     - image:
                         id: img_air_swing_btn

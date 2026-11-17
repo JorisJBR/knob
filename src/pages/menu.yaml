@@ -125,14 +125,17 @@ script:
                   const int SLOT_N = 5;
                   const int ITEM_N = 6;
                   const int OFFSETS[5] = {-2, -1, 0, 1, 2};
-                  const float CY = 240.0f;
-                  const float ARC_CX = 324.0f;
-                  const float R = 196.0f;
+                  const float screen_w = lv_obj_get_width(lv_scr_act());
+                  const float screen_h = lv_obj_get_height(lv_scr_act());
+                  const float scale = fminf(screen_w, screen_h) / 480.0f;
+                  const float CY = screen_h * 0.5f;
+                  const float ARC_CX = screen_w * 0.675f;
+                  const float R = fminf(screen_w, screen_h) * 0.408f;
                   // Non-uniform spacing: near=60px, far=96px (independent)
-                  auto arc_dy = [](float off) -> float {
+                  auto arc_dy = [scale](float off) -> float {
                     const float s = (off >= 0.0f) ? 1.0f : -1.0f;
                     const float a = fabsf(off);
-                    return s * (a <= 1.0f ? a * 120.0f : 120.0f + (a - 1.0f) * 72.0f);
+                    return s * (a <= 1.0f ? a * 120.0f * scale : 120.0f * scale + (a - 1.0f) * 72.0f * scale);
                   };
 
                   lv_obj_t* slots[5] = {
@@ -169,13 +172,13 @@ script:
                     if (closeness > 1.0f) closeness = 1.0f;
 
                     const int mix = (int)(closeness * 1000.0f);
-                    int w = 80;
+                    int w = (int)(80 * scale);
                     int opa_text = 0;
                     int opa_bg = 0;
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, 80, 336);
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -184,21 +187,21 @@ script:
                       opa_bg = lv_map(mix, 820, 1000, 0, 510);
                     }
                     if (mix > 760) {
-                      pill_shift = lv_map(mix, 760, 1000, 0, 108);
+                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(108 * scale));
                     }
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
-                    lv_obj_set_height(slots[i], i == 2 ? 112 : 80);
-                    lv_obj_set_style_radius(slots[i], i == 2 ? 56 : 40, LV_PART_MAIN);
+                    lv_obj_set_height(slots[i], (int)((i == 2 ? 112 : 80) * scale));
+                    lv_obj_set_style_radius(slots[i], (int)((i == 2 ? 56 : 40) * scale), LV_PART_MAIN);
                     lv_obj_set_style_bg_color(slots[i], lv_color_hex(0x0D1537), LV_PART_MAIN);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
 
-                    lv_obj_set_pos(slots[i], (int)(x - 28.0f - 240.0f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f)));
+                    lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {
                       lv_obj_set_pos(id(slot_center_bar),
-                        (int)(x - 28.0f - 240.0f + pill_shift) - 20,
-                        (int)(y - 32.0f));
+                        (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift) - (int)(20 * scale),
+                        (int)(y - 32.0f * scale));
                     }
 
                     lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
@@ -245,14 +248,17 @@ script:
                   const int SLOT_N = 5;
                   const int ITEM_N = 6;
                   const int OFFSETS[5] = {-2, -1, 0, 1, 2};
-                  const float CY = 240.0f;
-                  const float ARC_CX = 324.0f;
-                  const float R = 196.0f;
+                  const float screen_w = lv_obj_get_width(lv_scr_act());
+                  const float screen_h = lv_obj_get_height(lv_scr_act());
+                  const float scale = fminf(screen_w, screen_h) / 480.0f;
+                  const float CY = screen_h * 0.5f;
+                  const float ARC_CX = screen_w * 0.675f;
+                  const float R = fminf(screen_w, screen_h) * 0.408f;
                   // Non-uniform spacing: near=60px, far=96px (independent)
-                  auto arc_dy = [](float off) -> float {
+                  auto arc_dy = [scale](float off) -> float {
                     const float s = (off >= 0.0f) ? 1.0f : -1.0f;
                     const float a = fabsf(off);
-                    return s * (a <= 1.0f ? a * 120.0f : 120.0f + (a - 1.0f) * 72.0f);
+                    return s * (a <= 1.0f ? a * 120.0f * scale : 120.0f * scale + (a - 1.0f) * 72.0f * scale);
                   };
 
                   lv_obj_t* slots[5] = {
@@ -289,13 +295,13 @@ script:
                     if (closeness > 1.0f) closeness = 1.0f;
 
                     const int mix = (int)(closeness * 1000.0f);
-                    int w = 80;
+                    int w = (int)(80 * scale);
                     int opa_text = 0;
                     int opa_bg = 0;
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, 80, 336);
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -304,21 +310,21 @@ script:
                       opa_bg = lv_map(mix, 820, 1000, 0, 510);
                     }
                     if (mix > 760) {
-                      pill_shift = lv_map(mix, 760, 1000, 0, 128);
+                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(128 * scale));
                     }
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
-                    lv_obj_set_height(slots[i], i == 2 ? 112 : 80);
-                    lv_obj_set_style_radius(slots[i], i == 2 ? 56 : 40, LV_PART_MAIN);
+                    lv_obj_set_height(slots[i], (int)((i == 2 ? 112 : 80) * scale));
+                    lv_obj_set_style_radius(slots[i], (int)((i == 2 ? 56 : 40) * scale), LV_PART_MAIN);
                     lv_obj_set_style_bg_color(slots[i], lv_color_hex(0x0D1537), LV_PART_MAIN);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
 
-                    lv_obj_set_pos(slots[i], (int)(x - 28.0f - 240.0f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f)));
+                    lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {
                       lv_obj_set_pos(id(slot_center_bar),
-                        (int)(x - 28.0f - 240.0f + pill_shift) - 20,
-                        (int)(y - 32.0f));
+                        (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift) - (int)(20 * scale),
+                        (int)(y - 32.0f * scale));
                     }
 
                     lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
@@ -350,14 +356,17 @@ script:
       - lambda: |-
           const int ITEM_N = 6;
           const int SLOT_N = 5;
-          const float CY = 240.0f;
-          const float ARC_CX = 324.0f;
-          const float R = 196.0f;
+          const float screen_w = lv_obj_get_width(lv_scr_act());
+          const float screen_h = lv_obj_get_height(lv_scr_act());
+          const float scale = fminf(screen_w, screen_h) / 480.0f;
+          const float CY = screen_h * 0.5f;
+          const float ARC_CX = screen_w * 0.675f;
+          const float R = fminf(screen_w, screen_h) * 0.408f;
           // Non-uniform spacing: near=60px, far=96px (independent)
-          auto arc_dy = [](float off) -> float {
+          auto arc_dy = [scale](float off) -> float {
             const float s = (off >= 0.0f) ? 1.0f : -1.0f;
             const float a = fabsf(off);
-            return s * (a <= 1.0f ? a * 120.0f : 120.0f + (a - 1.0f) * 72.0f);
+            return s * (a <= 1.0f ? a * 120.0f * scale : 120.0f * scale + (a - 1.0f) * 72.0f * scale);
           };
 
           lv_obj_t* icons[5] = {
@@ -370,6 +379,11 @@ script:
             id(slot_center_lbl),
             id(slot_near_dn_lbl), id(slot_far_dn_lbl)
           };
+          const lv_font_t* item_font = screen_w >= 400
+            ? id(font_menu_item)->get_lv_font() : id(font_menu_sub)->get_lv_font();
+          const lv_font_t* center_font = screen_w >= 400
+            ? id(font_menu_center)->get_lv_font() : id(font_menu_sub)->get_lv_font();
+          const lv_font_t* sub_font = id(font_menu_sub)->get_lv_font();
           const int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
           // const char* TITLES[6]    = {"", "", "Lights", "AC", "Music", "Clock"};
@@ -463,12 +477,12 @@ script:
             if (closeness > 1.0f) closeness = 1.0f;
             const int mix = (int)(closeness * 1000.0f);
 
-            int w = 80;
+            int w = (int)(80 * scale);
             int opa_text = 0;
             int opa_bg = 0;
             int pill_shift = 0;
             if (mix > 760) {
-              w = lv_map(mix, 760, 1000, 80, 336);
+              w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
             }
             if (mix > 840) {
               opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -477,13 +491,13 @@ script:
               opa_bg = lv_map(mix, 820, 1000, 0, 510);
             }
             if (mix > 760) {
-              pill_shift = lv_map(mix, 760, 1000, 0, 108);
+              pill_shift = lv_map(mix, 760, 1000, 0, (int)(108 * scale));
             }
             const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
             lv_obj_set_width(slots[slot], w);
-            lv_obj_set_height(slots[slot], slot == 2 ? 112 : 80);
-            lv_obj_set_style_radius(slots[slot], slot == 2 ? 56 : 40, LV_PART_MAIN);
+            lv_obj_set_height(slots[slot], (int)((slot == 2 ? 112 : 80) * scale));
+            lv_obj_set_style_radius(slots[slot], (int)((slot == 2 ? 56 : 40) * scale), LV_PART_MAIN);
             // Use per-item pill color for center slot, dim for others
             if (slot == 2) {
               lv_obj_set_style_bg_color(slots[slot], lv_color_hex(PILL_COLORS[di]), LV_PART_MAIN);
@@ -497,12 +511,16 @@ script:
               lv_obj_set_style_border_width(slots[slot], 0, LV_PART_MAIN);
             }
 
-            lv_obj_set_pos(slots[slot], (int)(x - 28.0f - 240.0f + pill_shift), (int)(y - (slot == 2 ? 56.0f : 40.0f)));
+            lv_obj_set_pos(slots[slot], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (slot == 2 ? 56.0f : 40.0f) * scale));
+            lv_obj_set_style_text_font(title_lbls[slot], slot == 2 ? center_font : item_font, LV_PART_MAIN);
+            lv_obj_set_x(title_lbls[slot], (int)((slot == 2 ? 108 : 76) * scale));
+            lv_obj_set_width(title_lbls[slot], (int)(screen_w * 0.55f));
+            lv_img_set_zoom(icons[slot], (uint16_t)(256 * scale));
 
             // Update accent bar position to follow center slot
             if (slot == 2) {
-              int bx = (int)(x - 28.0f - 240.0f + pill_shift) - 20;
-              int by = (int)(y - 32.0f);
+              int bx = (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift) - (int)(20 * scale);
+              int by = (int)(y - 32.0f * scale);
               lv_obj_set_pos(id(slot_center_bar), bx, by);
               lv_obj_set_style_bg_color(id(slot_center_bar), lv_color_hex(ACCENT_COLORS[di]), LV_PART_MAIN);
               lv_obj_set_style_opa(id(slot_center_bar), 0, LV_PART_MAIN); // Hide the bar
@@ -523,6 +541,8 @@ script:
           {
             int ci = ((sel) % ITEM_N + ITEM_N) % ITEM_N;
             lv_label_set_text(id(slot_center_sub), subtitles[ci]);
+            lv_obj_set_style_text_font(id(slot_center_sub), sub_font, LV_PART_MAIN);
+            lv_obj_set_pos(id(slot_center_sub), (int)(108 * scale), (int)(60 * scale));
             lv_obj_set_style_opa(id(slot_center_sub), 255, LV_PART_MAIN);
             // Sub label color matches accent
             lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[ci]), LV_PART_MAIN);
@@ -757,8 +777,8 @@ lvgl:
               - obj:
                   id: btn_menu_home
                   align: TOP_RIGHT
-                  x: -16
-                  y: 16
+                  x: -3.3%
+                  y: 3.3%
                   width: 14%
                   height: 14%
                   radius: 7%
@@ -776,8 +796,8 @@ lvgl:
               - obj:
                   id: sdot_0
                   align: RIGHT_MID
-                  x: -20
-                  y: -70
+                  x: -4.2%
+                  y: -14.6%
                   width: 2%
                   height: 2%
                   radius: 1%
@@ -789,8 +809,8 @@ lvgl:
               - obj:
                   id: sdot_1
                   align: RIGHT_MID
-                  x: -20
-                  y: -42
+                  x: -4.2%
+                  y: -8.75%
                   width: 2%
                   height: 2%
                   radius: 1%
@@ -802,8 +822,8 @@ lvgl:
               - obj:
                   id: sdot_2
                   align: RIGHT_MID
-                  x: -20
-                  y: -14
+                  x: -4.2%
+                  y: -2.9%
                   width: 2%
                   height: 2%
                   radius: 1%
@@ -815,8 +835,8 @@ lvgl:
               - obj:
                   id: sdot_3
                   align: RIGHT_MID
-                  x: -20
-                  y: 14
+                  x: -4.2%
+                  y: 2.9%
                   width: 2%
                   height: 2%
                   radius: 1%
@@ -828,8 +848,8 @@ lvgl:
               - obj:
                   id: sdot_4
                   align: RIGHT_MID
-                  x: -20
-                  y: 42
+                  x: -4.2%
+                  y: 8.75%
                   width: 2%
                   height: 2%
                   radius: 1%
@@ -841,8 +861,8 @@ lvgl:
               - obj:
                   id: sdot_5
                   align: RIGHT_MID
-                  x: -20
-                  y: 70
+                  x: -4.2%
+                  y: 14.6%
                   width: 2%
                   height: 2%
                   radius: 1%

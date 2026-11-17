@@ -271,16 +271,13 @@ script:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
           then:
-            - lambda: |-
-                id(air_encoder_step_accum) -= 1;
-                if (id(air_encoder_step_accum) <= -4) {
-                  id(air_encoder_step_accum) = 0;
-                  if (id(air_mode) == 0) {
-                    id(air_temp_down).execute();
-                  } else {
-                    id(air_fan_down).execute();
-                  }
-                }
+            - if:
+                condition:
+                  lambda: 'return id(air_mode) == 0;'
+                then:
+                  - script.execute: air_temp_down
+                else:
+                  - script.execute: air_fan_down
       - if:
           condition:
             lambda: 'return id(in_music);'
@@ -318,16 +315,13 @@ script:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
           then:
-            - lambda: |-
-                id(air_encoder_step_accum) += 1;
-                if (id(air_encoder_step_accum) >= 4) {
-                  id(air_encoder_step_accum) = 0;
-                  if (id(air_mode) == 0) {
-                    id(air_temp_up).execute();
-                  } else {
-                    id(air_fan_up).execute();
-                  }
-                }
+            - if:
+                condition:
+                  lambda: 'return id(air_mode) == 0;'
+                then:
+                  - script.execute: air_temp_up
+                else:
+                  - script.execute: air_fan_up
       - if:
           condition:
             lambda: 'return id(in_music) && !id(in_menu);'

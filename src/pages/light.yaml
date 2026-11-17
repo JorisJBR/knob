@@ -232,7 +232,6 @@ script:
           id(light_color_r) = r8;
           id(light_color_g) = g8;
           id(light_color_b) = b8;
-          id(light_gradient_mode) = -1;
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: in_light, value: 'true'}
       - script.execute: refresh_light_arc
@@ -244,10 +243,7 @@ script:
                 service: light.turn_on
                 data:
                   entity_id: ${light_entity} #  !lambda "return id(cfg_light).c_str();"
-                  # rgb_color: |-
-                  #   - !lambda "return id(light_color_r);"
-                  #   - !lambda "return id(light_color_g);"
-                  #   - !lambda "return id(light_color_b);"
+                  # rgb_color is currently preview-only; ESPHome service data does not accept a dynamic list here.
                   brightness_pct: !lambda "return id(light_brightness);"
       - lvgl.page.show:
           id: page_light
@@ -268,6 +264,13 @@ script:
           if (h < 0) h += 360;
           id(light_color_h) = h;
       - script.execute: refresh_color_preview
+
+  - id: cycle_gradient_effect
+    then:
+      - lambda: |-
+          id(light_gradient_mode) = (id(light_gradient_mode) + 1) % 6;
+          id(light_color_h) = id(light_gradient_mode) * 60;
+      - script.execute: confirm_light_color
 
   - id: refresh_color_preview
     then:
@@ -402,7 +405,7 @@ lvgl:
         - script.execute: refresh_light_arc
       widgets:
         - obj:
-            align: TOP_LEFT
+            align: CENTER
             x: 0
             y: 0
             width: 100%
@@ -417,8 +420,9 @@ lvgl:
             widgets:
               - arc:
                   id: light_arc
-                  x: 24
-                  y: 34
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 90%
                   height: 90%
                   rotation: 90
@@ -446,18 +450,6 @@ lvgl:
                     height: 6%
                     radius: 3%
 
-              - obj:
-                  id: light_knob_dot
-                  x: 352
-                  y: 78
-                  width: 8%
-                  height: 8%
-                  radius: 5%
-                  bg_opa: TRANSP
-                  border_width: 0
-                  clickable: false
-                  scrollbar_mode: "OFF"
-
               - label:
                   id: lbl_brightness_num
                   align: LEFT_MID
@@ -477,8 +469,9 @@ lvgl:
                   text_color: col_light_purple
 
               - obj:
-                  x: 162
-                  y: 286
+                  align: CENTER
+                  x: 0
+                  y: 15%
                   width: 32%
                   height: 10%
                   radius: 7%
@@ -497,8 +490,9 @@ lvgl:
 
               - obj:
                   id: btn_palette
-                  x: 122
-                  y: 354
+                  align: CENTER
+                  x: -17%
+                  y: 31%
                   width: 15%
                   height: 15%
                   radius: 7%
@@ -524,8 +518,9 @@ lvgl:
 
               - obj:
                   id: btn_rainbow
-                  x: 204
-                  y: 354
+                  align: CENTER
+                  x: 0
+                  y: 31%
                   width: 15%
                   height: 15%
                   radius: 7%
@@ -541,8 +536,8 @@ lvgl:
                   clickable: true
                   scrollbar_mode: "OFF"
                   # scroll_dir: NONE
-                  #on_click:
-                    #- script.execute: cycle_gradient_effect
+                  on_click:
+                    - script.execute: cycle_gradient_effect
                   widgets:
                     - image:
                         src: light_img_gradient
@@ -550,8 +545,9 @@ lvgl:
                         clickable: false
               - obj:
                   id: btn_dengguang
-                  x: 286
-                  y: 354
+                  align: CENTER
+                  x: 17%
+                  y: 31%
                   width: 15%
                   height: 15%
                   radius: 7%
@@ -584,7 +580,7 @@ lvgl:
         - script.execute: refresh_color_preview
       widgets:
         - obj:
-            align: TOP_LEFT
+            align: CENTER
             x: 0
             y: 0
             width: 100%
@@ -600,8 +596,9 @@ lvgl:
 
               - arc:
                   id: cp_arc
-                  x: 24
-                  y: 24
+                  align: CENTER
+                  x: 0
+                  y: 0
                   width: 95%
                   height: 95%
                   rotation: 270

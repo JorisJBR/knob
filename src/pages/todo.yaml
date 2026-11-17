@@ -61,6 +61,9 @@ globals:
   - id: todo_fetching
     type: bool
     initial_value: 'false'
+  - id: todo_fetch_error
+    type: bool
+    initial_value: 'false'
   - id: todo_updating
     type: bool
     initial_value: 'false'
@@ -92,7 +95,9 @@ script:
     mode: restart
     then:
       - globals.set: {id: todo_fetching, value: 'true'}
+      - globals.set: {id: todo_fetch_error, value: 'false'}
       - script.execute: refresh_todo
+      - script.execute: todo_fetch_timeout
       - homeassistant.action:
           action: todo.get_items
           data:
@@ -103,7 +108,13 @@ script:
                 id(todo_item_ids).clear();
                 id(todo_item_titles).clear();
                 id(todo_item_completed).clear();
-                JsonArrayConst items = response["response"]["todo.items"].as<JsonArrayConst>();
+                JsonVariantConst payload = response["response"];
+                JsonVariantConst item_data = payload["${todo_entity}"]["items"];
+                if (item_data.isNull()) item_data = payload["todo.items"]["items"];
+                if (item_data.isNull()) item_data = payload["todo.items"];
+                if (item_data.isNull()) item_data = payload["items"];
+                bool valid_response = !item_data.isNull();
+                JsonArrayConst items = item_data.as<JsonArrayConst>();
                 for (JsonObjectConst item : items) {
                   if (id(todo_item_ids).size() >= 12) break;
                   std::string item_id = item["uid"] | "";
@@ -119,7 +130,20 @@ script:
                   id(todo_selected) = 0;
                 }
                 id(todo_fetching) = false;
+                id(todo_fetch_error) = !valid_response;
                 id(todo_updating) = false;
+            - script.execute: refresh_todo
+
+  - id: todo_fetch_timeout
+    mode: restart
+    then:
+      - delay: 8s
+      - if:
+          condition:
+            lambda: 'return id(todo_fetching);'
+          then:
+            - globals.set: {id: todo_fetching, value: 'false'}
+            - globals.set: {id: todo_fetch_error, value: 'true'}
             - script.execute: refresh_todo
 
   - id: select_todo_previous
@@ -159,7 +183,7 @@ script:
                 action: todo.update_item
                 data:
                   entity_id: ${todo_entity}
-                  item: !lambda 'return id(todo_item_ids)[id(todo_selected)];'
+                  item: !lambda 'return id(todo_item_titles)[id(todo_selected)];'
                   status: !lambda |-
                     return id(todo_item_completed)[id(todo_selected)]
                       ? std::string("completed") : std::string("needs_action");
@@ -176,9 +200,11 @@ script:
           int count = id(todo_count);
           static char counter[16];
           if (count == 0) {
-            lv_label_set_text(id(lbl_todo_item), id(todo_fetching) ? "Loading tasks..." : "No tasks found");
+            const char* empty_state = id(todo_fetching) ? "Loading tasks..."
+              : (id(todo_fetch_error) ? "Could not load tasks" : "No tasks found");
+            lv_label_set_text(id(lbl_todo_item), empty_state);
             lv_label_set_text(id(lbl_todo_counter), "0 / 0");
-            lv_label_set_text(id(lbl_todo_action), "TRY AGAIN");
+            lv_label_set_text(id(lbl_todo_action), id(todo_fetching) ? "WAIT" : "RETRY");
             lv_obj_set_style_bg_color(id(btn_todo_action), lv_color_hex(0x263B2D), LV_PART_MAIN);
             lv_obj_set_style_text_color(id(lbl_todo_action), lv_color_hex(0x8BE0A1), 0);
             return;
