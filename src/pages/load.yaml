@@ -179,8 +179,8 @@ script:
                   id(close_timer).execute();
                   return;
                 }
-                if (id(in_fridge)) {
-                  id(in_fridge) = false;
+                if (id(in_todo)) {
+                  id(in_todo) = false;
                   id(open_menu).execute();
                   return;
                 }
@@ -220,6 +220,14 @@ script:
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: play_toggle
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_todo) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: todo_toggle_selected
             - delay: 250ms
             - globals.set: {id: button_debounce, value: 'false'}
       - if:
@@ -285,9 +293,9 @@ script:
             - script.execute: menu_scroll_up
       - if:
           condition:
-            lambda: 'return id(in_fridge);'
+            lambda: 'return id(in_todo);'
           then:
-            - script.execute: fridge_scroll_up
+            - script.execute: select_todo_previous
       - if:
           condition:
             lambda: 'return id(in_timer);'
@@ -332,9 +340,9 @@ script:
             - script.execute: menu_scroll_down
       - if:
           condition:
-            lambda: 'return id(in_fridge);'
+            lambda: 'return id(in_todo);'
           then:
-            - script.execute: fridge_scroll_down
+            - script.execute: select_todo_next
       - if:
           condition:
             lambda: 'return id(in_timer);'

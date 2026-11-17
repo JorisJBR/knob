@@ -4,7 +4,7 @@ packages:
   light_page:  !include src/pages/light.yaml
   air_page:    !include src/pages/air.yaml
   music_page:  !include src/pages/music.yaml
-  fridge_page: !include src/pages/fridge.yaml
+  todo_page:   !include src/pages/todo.yaml
   timer_page:  !include src/pages/timer.yaml
   menu_page:   !include src/pages/menu.yaml
 
@@ -15,7 +15,7 @@ substitutions:
   climate_entity: climate.airco_beneden
   music_player_entity: media_player.woonkamer
   light_entity: light.spots_woonkamer
-  #todo_entity: ?
+  todo_entity: todo.to_do
   #calendar_entity: ?
   #camera_entity: ?
   #energy_page: ?
@@ -322,7 +322,7 @@ touchscreen:
           id(swipe_start_x) = -1;
           if (abs(dx) < 50 || abs(dy) > abs(dx)) return;
           bool on_clock = !id(in_menu) && !id(in_light) && !id(in_air)
-                      && !id(in_music) && !id(in_timer) && !id(in_fridge)
+                      && !id(in_music) && !id(in_timer) && !id(in_todo)
                       && !id(in_colorpicker);
           if (on_clock && dx < 0) {
               id(open_menu).execute();

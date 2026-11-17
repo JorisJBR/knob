@@ -24,7 +24,16 @@ font:
       weight: 400
       type: gfonts
     id: font_timer_time
-    size: 42
+    size: 64
+    bpp: 4
+    glyphs: "0123456789:"
+
+  - file:
+      family: Share Tech Mono
+      weight: 400
+      type: gfonts
+    id: font_timer_time_small
+    size: 36
     bpp: 4
     glyphs: "0123456789:"
 
@@ -33,7 +42,7 @@ font:
       weight: 600
       type: gfonts
     id: font_timer_btn
-    size: 11
+    size: 16
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
@@ -158,6 +167,10 @@ script:
           int   unit    = id(timer_unit);
           bool  editing = !running && !done;
 
+          int screen_width = lv_obj_get_width(lv_scr_act());
+          lv_obj_set_style_text_font(id(lbl_timer_time),
+            screen_width >= 400 ? id(font_timer_time) : id(font_timer_time_small), 0);
+
           float pct = editing ? 1.0f
                     : (total > 0 ? (float)rem / (float)total : 0.0f);
 
@@ -226,12 +239,12 @@ lvgl:
       scrollbar_mode: "OFF"
       widgets:
         - obj:
-            align: TOP_LEFT
+            align: CENTER
             x: 0
             y: 0
-            width: 240
-            height: 240
-            radius: 120
+            width: 100%
+            height: 100%
+            radius: 50%
             clip_corner: true
             bg_color: col_timer_bg
             bg_opa: COVER
@@ -243,8 +256,8 @@ lvgl:
               - arc:
                   id: arc_timer
                   align: CENTER
-                  width: 232
-                  height: 232
+                  width: 92%
+                  height: 92%
                   rotation: 270
                   start_angle: 0
                   end_angle: 360
@@ -271,7 +284,7 @@ lvgl:
               - label:
                   id: lbl_timer_time
                   align: CENTER
-                  y: -16
+                  y: -12%
                   text: "00:05:00"
                   text_font: font_timer_time
                   text_color: 0xFFFFFF
@@ -279,11 +292,11 @@ lvgl:
               - obj:
                   id: btn_timer_h
                   align: CENTER
-                  x: -65
-                  y: 24
-                  width: 38
-                  height: 22
-                  radius: 11
+                  x: -34%
+                  y: 20%
+                  width: 16%
+                  height: 9%
+                  radius: 50%
                   bg_color: col_timer_btn_bg
                   bg_opa: COVER
                   border_width: 1
@@ -307,11 +320,11 @@ lvgl:
               - obj:
                   id: btn_timer_m
                   align: CENTER
-                  x: -22
-                  y: 24
-                  width: 38
-                  height: 22
-                  radius: 11
+                  x: -11%
+                  y: 20%
+                  width: 16%
+                  height: 9%
+                  radius: 50%
                   bg_color: col_timer_btn_bg
                   bg_opa: COVER
                   border_width: 1
@@ -335,11 +348,11 @@ lvgl:
               - obj:
                   id: btn_timer_s
                   align: CENTER
-                  x: 21
-                  y: 24
-                  width: 38
-                  height: 22
-                  radius: 11
+                  x: 11%
+                  y: 20%
+                  width: 16%
+                  height: 9%
+                  radius: 50%
                   bg_color: col_timer_btn_bg
                   bg_opa: COVER
                   border_width: 1
@@ -363,11 +376,11 @@ lvgl:
               - obj:
                   id: btn_timer_reset
                   align: CENTER
-                  x: 64
-                  y: 24
-                  width: 38
-                  height: 22
-                  radius: 11
+                  x: 34%
+                  y: 20%
+                  width: 16%
+                  height: 9%
+                  radius: 50%
                   bg_color: col_timer_btn_bg
                   bg_opa: COVER
                   border_width: 1
