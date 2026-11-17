@@ -102,6 +102,9 @@ globals:
   - id: air_encoder_step_accum
     type: int
     initial_value: '0'
+  - id: air_temp_override_until_ms
+    type: uint32_t
+    initial_value: '0'
 
 sensor:
   - platform: homeassistant
@@ -109,7 +112,10 @@ sensor:
     entity_id: ${climate_entity}
     attribute: temperature
     on_value:
-      - lambda: 'if (!isnan(x)) id(air_temp) = (int)(x * 2.0f + 0.5f);'
+      - lambda: |-
+          if (isnan(x)) return;
+          if ((int32_t)(id(air_temp_override_until_ms) - millis()) > 0) return;
+          id(air_temp) = (int)(x * 2.0f + 0.5f);
       - script.execute: refresh_air
 
   - platform: homeassistant
@@ -162,12 +168,9 @@ script:
           int v = id(air_temp) + 2;
           if (v > 52) v = 52;  // 26C
           id(air_temp) = v;
-      - homeassistant.service:
-          service: climate.set_temperature
-          data:
-            entity_id: ${climate_entity}
-            temperature: !lambda 'return std::to_string((int)(id(air_temp) / 2));'
+          id(air_temp_override_until_ms) = millis() + 1200;
       - script.execute: refresh_air
+      - script.execute: air_temp_commit
 
   - id: air_temp_down
     then:
@@ -175,12 +178,19 @@ script:
           int v = id(air_temp) - 2;
           if (v < 34) v = 34;  // 17C
           id(air_temp) = v;
+          id(air_temp_override_until_ms) = millis() + 1200;
+      - script.execute: refresh_air
+      - script.execute: air_temp_commit
+
+  - id: air_temp_commit
+    mode: restart
+    then:
+      - delay: 150ms
       - homeassistant.service:
           service: climate.set_temperature
           data:
             entity_id: ${climate_entity}
             temperature: !lambda 'return std::to_string((int)(id(air_temp) / 2));'
-      - script.execute: refresh_air
 
   - id: air_toggle_mode
     then:

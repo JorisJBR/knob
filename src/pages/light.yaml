@@ -77,7 +77,10 @@ globals:
     initial_value: '75'
   - id: light_brightness_step
     type: int
-    initial_value: '5'
+    initial_value: '1'
+  - id: light_brightness_override_ms
+    type: uint32_t
+    initial_value: '0'
   - id: in_light
     type: bool
     initial_value: 'false'
@@ -114,6 +117,7 @@ sensor:
     on_value:
       - lambda: |-
           if (isnan(x)) return;
+          if (millis() - id(light_brightness_override_ms) < 1000) return;
           // HA reports brightness as 0-255, light_brightness is a percentage
           int pct = (int)(x * 100.0f / 255.0f + 0.5f);
           if (pct == id(light_brightness)) return;
@@ -303,10 +307,11 @@ script:
     mode: restart
     then:
       - lambda: |-
+          id(light_brightness_override_ms) = millis();
           int v = id(light_brightness) + id(light_brightness_step);
           id(light_brightness) = v > 100 ? 100 : v;
       - script.execute: refresh_light_arc
-      - delay: 300ms
+      - delay: 120ms
       - if:
           condition:
             lambda: 'return id(light_on);'
@@ -325,10 +330,11 @@ script:
     mode: restart
     then:
       - lambda: |-
+          id(light_brightness_override_ms) = millis();
           int v = id(light_brightness) - id(light_brightness_step);
           id(light_brightness) = v < 0 ? 0 : v;
       - script.execute: refresh_light_arc
-      - delay: 300ms
+      - delay: 120ms
       - if:
           condition:
             lambda: 'return id(light_on);'

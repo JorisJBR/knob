@@ -239,16 +239,8 @@ script:
           if (v > 100) v = 100;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
-      - homeassistant.action:
-          action: media_player.volume_set
-          data:
-            entity_id: ${music_player_entity}
-          data_template:
-            volume_level: !lambda |-
-              char buf[8];
-              snprintf(buf, sizeof(buf), "%.2f", id(music_volume) / 100.0f);
-              return std::string(buf);
-      - script.execute: refresh_music_volume     
+      - script.execute: refresh_music_volume
+      - script.execute: music_volume_commit
 
   - id: music_volume_down
     then:
@@ -257,6 +249,13 @@ script:
           if (v < 0) v = 0;
           id(music_volume) = v;
           id(music_volume_override_until_ms) = millis() + 1200;
+      - script.execute: refresh_music_volume
+      - script.execute: music_volume_commit
+
+  - id: music_volume_commit
+    mode: restart
+    then:
+      - delay: 150ms
       - homeassistant.action:
           action: media_player.volume_set
           data:
@@ -266,7 +265,6 @@ script:
               char buf[8];
               snprintf(buf, sizeof(buf), "%.2f", id(music_volume) / 100.0f);
               return std::string(buf);
-      - script.execute: refresh_music_volume
 
   - id: refresh_music_volume
     then:
@@ -280,7 +278,7 @@ script:
           lv_obj_set_style_bg_color(id(vol_bar_5), v > 57 ? lv_color_hex(0x8661FF) : off, 0);
           lv_obj_set_style_bg_color(id(vol_bar_6), v > 71 ? lv_color_hex(0x7E57FF) : off, 0);
           lv_obj_set_style_bg_color(id(vol_bar_7), v > 85 ? lv_color_hex(0x764CFF) : off, 0);
-          ESP_LOGI("music", "volume=%d", v);
+          ESP_LOGD("music", "volume=%d", v);
 
   - id: refresh_music_progress
     then:
@@ -469,6 +467,7 @@ interval:
   - interval: 200ms
     then:
       - lambda: |-
+          if (!id(in_music)) return;
           uint32_t now_ms = millis();
           bool server_playing = id(media_player_status).state == "playing" ||
           id(media_player_status).state == "buffering";
