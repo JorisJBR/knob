@@ -109,15 +109,22 @@ script:
                 id(todo_item_titles).clear();
                 id(todo_item_completed).clear();
                 JsonVariantConst payload = response["response"];
-                JsonVariantConst item_data = payload["${todo_entity}"]["items"];
-                if (item_data.isNull()) item_data = payload["todo.items"]["items"];
-                if (item_data.isNull()) item_data = payload["todo.items"];
+                if (payload.isNull()) payload = response;
+                JsonVariantConst entity_data = payload["${todo_entity}"];
+                JsonVariantConst item_data = entity_data["items"];
+                if (item_data.isNull() && entity_data.is<JsonArrayConst>()) item_data = entity_data;
+                JsonVariantConst todo_data = payload["todo.items"];
+                JsonVariantConst todo_entity_data = todo_data["${todo_entity}"];
+                if (item_data.isNull()) item_data = todo_entity_data["items"];
+                if (item_data.isNull() && todo_entity_data.is<JsonArrayConst>()) item_data = todo_entity_data;
+                if (item_data.isNull()) item_data = todo_data["items"];
+                if (item_data.isNull() && todo_data.is<JsonArrayConst>()) item_data = todo_data;
                 if (item_data.isNull()) item_data = payload["items"];
-                bool valid_response = !item_data.isNull();
+                bool valid_response = item_data.is<JsonArrayConst>();
                 JsonArrayConst items = item_data.as<JsonArrayConst>();
                 for (JsonObjectConst item : items) {
                   if (id(todo_item_ids).size() >= 12) break;
-                  std::string item_id = item["uid"] | "";
+                  std::string item_id = item["uid"] | item["id"] | "";
                   if (item_id.empty()) continue;
                   std::string title = item["summary"] | "Untitled task";
                   std::string status = item["status"] | "needs_action";
@@ -132,6 +139,17 @@ script:
                 id(todo_fetching) = false;
                 id(todo_fetch_error) = !valid_response;
                 id(todo_updating) = false;
+                if (!valid_response) {
+                  char response_summary[192];
+                  serializeJson(response, response_summary, sizeof(response_summary));
+                  ESP_LOGW("todo", "todo.get_items response was not an item array: %s", response_summary);
+                }
+            - script.execute: refresh_todo
+          on_error:
+            - lambda: |-
+                id(todo_fetching) = false;
+                id(todo_fetch_error) = true;
+                ESP_LOGW("todo", "todo.get_items failed: %s", error.c_str());
             - script.execute: refresh_todo
 
   - id: todo_fetch_timeout
@@ -150,7 +168,7 @@ script:
     then:
       - lambda: |-
           int count = id(todo_count);
-          if (count == 0) return;
+          if (count == 0 || id(todo_updating)) return;
           id(todo_selected) = (id(todo_selected) + count - 1) % count;
       - script.execute: refresh_todo
 
@@ -158,7 +176,7 @@ script:
     then:
       - lambda: |-
           int count = id(todo_count);
-          if (count == 0) return;
+          if (count == 0 || id(todo_updating)) return;
           id(todo_selected) = (id(todo_selected) + 1) % count;
       - script.execute: refresh_todo
 
@@ -189,6 +207,13 @@ script:
                       ? std::string("completed") : std::string("needs_action");
                 on_success:
                   - script.execute: fetch_todo_items
+                on_error:
+                  - lambda: |-
+                      int index = id(todo_selected);
+                      id(todo_item_completed)[index] = !id(todo_item_completed)[index];
+                      id(todo_updating) = false;
+                      ESP_LOGW("todo", "todo.update_item failed: %s", error.c_str());
+                  - script.execute: refresh_todo
 
   - id: refresh_todo
     then:

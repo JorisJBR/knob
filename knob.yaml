@@ -217,7 +217,7 @@ spi:
 display:
   - platform: st7701s
     id: round_display
-    update_interval: 50ms
+    update_interval: 25ms
     spi_mode: MODE3
     color_order: RGB
     invert_colors: false

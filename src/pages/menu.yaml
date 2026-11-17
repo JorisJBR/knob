@@ -192,9 +192,6 @@ script:
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
-                    lv_obj_set_height(slots[i], (int)((i == 2 ? 112 : 80) * scale));
-                    lv_obj_set_style_radius(slots[i], (int)((i == 2 ? 56 : 40) * scale), LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(slots[i], lv_color_hex(0x0D1537), LV_PART_MAIN);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
@@ -315,9 +312,6 @@ script:
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
-                    lv_obj_set_height(slots[i], (int)((i == 2 ? 112 : 80) * scale));
-                    lv_obj_set_style_radius(slots[i], (int)((i == 2 ? 56 : 40) * scale), LV_PART_MAIN);
-                    lv_obj_set_style_bg_color(slots[i], lv_color_hex(0x0D1537), LV_PART_MAIN);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
