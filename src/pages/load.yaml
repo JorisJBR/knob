@@ -179,8 +179,8 @@ script:
                   id(close_timer).execute();
                   return;
                 }
-                if (id(in_fridge)) {
-                  id(in_fridge) = false;
+                if (id(in_todo)) {
+                  id(in_todo) = false;
                   id(open_menu).execute();
                   return;
                 }
@@ -224,6 +224,14 @@ script:
             - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
+            lambda: 'return id(in_todo) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: todo_toggle_selected
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
             lambda: 'return id(in_air) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
@@ -263,16 +271,13 @@ script:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
           then:
-            - lambda: |-
-                id(air_encoder_step_accum) -= 1;
-                if (id(air_encoder_step_accum) <= -4) {
-                  id(air_encoder_step_accum) = 0;
-                  if (id(air_mode) == 0) {
-                    id(air_temp_down).execute();
-                  } else {
-                    id(air_fan_down).execute();
-                  }
-                }
+            - if:
+                condition:
+                  lambda: 'return id(air_mode) == 0;'
+                then:
+                  - script.execute: air_temp_down
+                else:
+                  - script.execute: air_fan_down
       - if:
           condition:
             lambda: 'return id(in_music);'
@@ -285,9 +290,9 @@ script:
             - script.execute: menu_scroll_up
       - if:
           condition:
-            lambda: 'return id(in_fridge);'
+            lambda: 'return id(in_todo);'
           then:
-            - script.execute: fridge_scroll_up
+            - script.execute: select_todo_previous
       - if:
           condition:
             lambda: 'return id(in_timer);'
@@ -310,16 +315,13 @@ script:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
           then:
-            - lambda: |-
-                id(air_encoder_step_accum) += 1;
-                if (id(air_encoder_step_accum) >= 4) {
-                  id(air_encoder_step_accum) = 0;
-                  if (id(air_mode) == 0) {
-                    id(air_temp_up).execute();
-                  } else {
-                    id(air_fan_up).execute();
-                  }
-                }
+            - if:
+                condition:
+                  lambda: 'return id(air_mode) == 0;'
+                then:
+                  - script.execute: air_temp_up
+                else:
+                  - script.execute: air_fan_up
       - if:
           condition:
             lambda: 'return id(in_music) && !id(in_menu);'
@@ -332,9 +334,9 @@ script:
             - script.execute: menu_scroll_down
       - if:
           condition:
-            lambda: 'return id(in_fridge);'
+            lambda: 'return id(in_todo);'
           then:
-            - script.execute: fridge_scroll_down
+            - script.execute: select_todo_next
       - if:
           condition:
             lambda: 'return id(in_timer);'

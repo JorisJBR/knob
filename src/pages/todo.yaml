@@ -1,0 +1,378 @@
+color:
+  - id: col_todo_bg
+    hex: "080B0A"
+  - id: col_todo_panel
+    hex: "111915"
+  - id: col_todo_border
+    hex: "263B2D"
+  - id: col_todo_accent
+    hex: "8BE0A1"
+  - id: col_todo_open
+    hex: "F1B65B"
+  - id: col_todo_done
+    hex: "77D99A"
+  - id: col_todo_muted
+    hex: "89938C"
+
+font:
+  - file:
+      family: DM+Sans
+      weight: 700
+      type: gfonts
+    id: font_todo_title
+    size: 28
+    bpp: 4
+    glyphs: "T-OD"
+
+  - file:
+      family: DM+Sans
+      weight: 600
+      type: gfonts
+    id: font_todo_item
+    size: 32
+    bpp: 4
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'-_():/"
+
+  - file:
+      family: DM+Sans
+      weight: 600
+      type: gfonts
+    id: font_todo_item_small
+    size: 22
+    bpp: 4
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,!?'-_():/"
+
+  - file: "gfonts://DM+Sans"
+    id: font_todo_meta
+    size: 16
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 /-"
+
+globals:
+  - id: in_todo
+    type: bool
+    initial_value: 'false'
+  - id: todo_selected
+    type: int
+    initial_value: '0'
+  - id: todo_count
+    type: int
+    initial_value: '0'
+  - id: todo_fetching
+    type: bool
+    initial_value: 'false'
+  - id: todo_fetch_error
+    type: bool
+    initial_value: 'false'
+  - id: todo_updating
+    type: bool
+    initial_value: 'false'
+  - id: todo_animating
+    type: bool
+    initial_value: 'false'
+  - id: todo_item_ids
+    type: std::vector<std::string>
+    restore_value: false
+    initial_value: 'std::vector<std::string>()'
+  - id: todo_item_titles
+    type: std::vector<std::string>
+    restore_value: false
+    initial_value: 'std::vector<std::string>()'
+  - id: todo_item_completed
+    type: std::vector<int>
+    restore_value: false
+    initial_value: 'std::vector<int>()'
+
+script:
+  - id: open_todo
+    then:
+      - globals.set: {id: in_todo, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: todo_selected, value: '0'}
+      - lvgl.page.show:
+          id: page_todo
+          animation: MOVE_LEFT
+      - script.execute: fetch_todo_items
+
+  - id: fetch_todo_items
+    mode: restart
+    then:
+      - globals.set: {id: todo_fetching, value: 'true'}
+      - globals.set: {id: todo_fetch_error, value: 'false'}
+      - script.execute: refresh_todo
+      - script.execute: todo_fetch_timeout
+      - homeassistant.action:
+          action: todo.get_items
+          data:
+            entity_id: ${todo_entity}
+          capture_response: true
+          on_success:
+            - lambda: |-
+                id(todo_item_ids).clear();
+                id(todo_item_titles).clear();
+                id(todo_item_completed).clear();
+                JsonVariantConst payload = response["response"];
+                if (payload.isNull()) payload = response;
+                JsonVariantConst entity_data = payload["${todo_entity}"];
+                JsonVariantConst item_data = entity_data["items"];
+                if (item_data.isNull() && entity_data.is<JsonArrayConst>()) item_data = entity_data;
+                JsonVariantConst todo_data = payload["todo.items"];
+                JsonVariantConst todo_entity_data = todo_data["${todo_entity}"];
+                if (item_data.isNull()) item_data = todo_entity_data["items"];
+                if (item_data.isNull() && todo_entity_data.is<JsonArrayConst>()) item_data = todo_entity_data;
+                if (item_data.isNull()) item_data = todo_data["items"];
+                if (item_data.isNull() && todo_data.is<JsonArrayConst>()) item_data = todo_data;
+                if (item_data.isNull()) item_data = payload["items"];
+                bool valid_response = item_data.is<JsonArrayConst>();
+                JsonArrayConst items = item_data.as<JsonArrayConst>();
+                for (JsonObjectConst item : items) {
+                  if (id(todo_item_ids).size() >= 12) break;
+                  std::string title = item["summary"] | item["title"] | item["name"] | "Untitled task";
+                  std::string item_id = item["uid"] | item["id"] | title;
+                  std::string status = item["status"] | "needs_action";
+                  id(todo_item_ids).push_back(item_id);
+                  id(todo_item_titles).push_back(title);
+                  id(todo_item_completed).push_back(status == "completed" ? 1 : 0);
+                }
+                id(todo_count) = id(todo_item_ids).size();
+                ESP_LOGI("todo", "Loaded %d items", id(todo_count));
+                if (id(todo_count) == 0 || id(todo_selected) >= id(todo_count)) {
+                  id(todo_selected) = 0;
+                }
+                id(todo_fetching) = false;
+                id(todo_fetch_error) = !valid_response;
+                id(todo_updating) = false;
+                if (!valid_response) {
+                  char response_summary[192];
+                  serializeJson(response, response_summary, sizeof(response_summary));
+                  ESP_LOGW("todo", "todo.get_items response was not an item array: %s", response_summary);
+                }
+            - script.execute: refresh_todo
+            - script.execute: refresh_menu
+          on_error:
+            - lambda: |-
+                id(todo_fetching) = false;
+                id(todo_fetch_error) = true;
+                ESP_LOGW("todo", "todo.get_items failed: %s", error.c_str());
+            - script.execute: refresh_todo
+
+  - id: todo_fetch_timeout
+    mode: restart
+    then:
+      - delay: 8s
+      - if:
+          condition:
+            lambda: 'return id(todo_fetching);'
+          then:
+            - globals.set: {id: todo_fetching, value: 'false'}
+            - globals.set: {id: todo_fetch_error, value: 'true'}
+            - script.execute: refresh_todo
+
+  - id: select_todo_previous
+    then:
+      - lambda: |-
+          int count = id(todo_count);
+          if (count == 0 || id(todo_updating) || id(todo_animating)) return;
+          id(todo_selected) = (id(todo_selected) + count - 1) % count;
+          id(todo_animating) = true;
+          int slide_from = -lv_obj_get_width(lv_scr_act());
+          lv_obj_set_x(id(card_todo_item), slide_from);
+          id(refresh_todo).execute();
+          static lv_anim_t animation;
+          lv_anim_init(&animation);
+          lv_anim_set_var(&animation, id(card_todo_item));
+          lv_anim_set_values(&animation, slide_from, 0);
+          lv_anim_set_time(&animation, 260);
+          lv_anim_set_path_cb(&animation, lv_anim_path_ease_out);
+          lv_anim_set_exec_cb(&animation, [](void* object, int32_t x) {
+            lv_obj_set_x((lv_obj_t*)object, x);
+          });
+          lv_anim_set_ready_cb(&animation, [](lv_anim_t*) {
+            lv_obj_set_x(id(card_todo_item), 0);
+            id(todo_animating) = false;
+          });
+          lv_anim_start(&animation);
+      - script.execute: refresh_todo
+
+  - id: select_todo_next
+    then:
+      - lambda: |-
+          int count = id(todo_count);
+          if (count == 0 || id(todo_updating) || id(todo_animating)) return;
+          id(todo_selected) = (id(todo_selected) + 1) % count;
+          id(todo_animating) = true;
+          int slide_from = lv_obj_get_width(lv_scr_act());
+          lv_obj_set_x(id(card_todo_item), slide_from);
+          id(refresh_todo).execute();
+          static lv_anim_t animation;
+          lv_anim_init(&animation);
+          lv_anim_set_var(&animation, id(card_todo_item));
+          lv_anim_set_values(&animation, slide_from, 0);
+          lv_anim_set_time(&animation, 260);
+          lv_anim_set_path_cb(&animation, lv_anim_path_ease_out);
+          lv_anim_set_exec_cb(&animation, [](void* object, int32_t x) {
+            lv_obj_set_x((lv_obj_t*)object, x);
+          });
+          lv_anim_set_ready_cb(&animation, [](lv_anim_t*) {
+            lv_obj_set_x(id(card_todo_item), 0);
+            id(todo_animating) = false;
+          });
+          lv_anim_start(&animation);
+      - script.execute: refresh_todo
+
+  - id: todo_toggle_selected
+    mode: single
+    then:
+      - if:
+          condition:
+            lambda: 'return id(todo_count) == 0 && !id(todo_fetching);'
+          then:
+            - script.execute: fetch_todo_items
+      - if:
+          condition:
+            lambda: 'return id(todo_count) > 0 && !id(todo_updating) && !id(todo_animating);'
+          then:
+            - lambda: |-
+                int index = id(todo_selected);
+                id(todo_item_completed)[index] = !id(todo_item_completed)[index];
+                id(todo_updating) = true;
+            - script.execute: refresh_todo
+            - homeassistant.action:
+                action: todo.update_item
+                data:
+                  entity_id: ${todo_entity}
+                  item: !lambda 'return id(todo_item_titles)[id(todo_selected)];'
+                  status: !lambda |-
+                    return id(todo_item_completed)[id(todo_selected)]
+                      ? std::string("completed") : std::string("needs_action");
+                on_success:
+                  - script.execute: fetch_todo_items
+                on_error:
+                  - lambda: |-
+                      int index = id(todo_selected);
+                      id(todo_item_completed)[index] = !id(todo_item_completed)[index];
+                      id(todo_updating) = false;
+                      ESP_LOGW("todo", "todo.update_item failed: %s", error.c_str());
+                  - script.execute: refresh_todo
+
+  - id: refresh_todo
+    then:
+      - lambda: |-
+          int screen_width = lv_obj_get_width(lv_scr_act());
+          lv_obj_set_style_text_font(id(lbl_todo_item),
+            screen_width >= 400 ? id(font_todo_item) : id(font_todo_item_small), 0);
+
+          int count = id(todo_count);
+          static char counter[16];
+          if (count == 0) {
+            const char* empty_state = id(todo_fetching) ? "Loading tasks..."
+              : (id(todo_fetch_error) ? "Could not load tasks" : "No tasks found");
+            lv_label_set_text(id(lbl_todo_item), empty_state);
+            lv_label_set_text(id(lbl_todo_counter), "0 / 0");
+            lv_label_set_text(id(lbl_todo_action), id(todo_fetching) ? "WAIT" : "RETRY");
+            lv_obj_set_style_bg_color(id(btn_todo_action), lv_color_hex(0x263B2D), LV_PART_MAIN);
+            lv_obj_set_style_text_color(id(lbl_todo_action), lv_color_hex(0x8BE0A1), 0);
+            return;
+          }
+
+          if (id(todo_selected) >= count) id(todo_selected) = 0;
+          int index = id(todo_selected);
+          lv_label_set_text(id(lbl_todo_item), id(todo_item_titles)[index].c_str());
+          snprintf(counter, sizeof(counter), "%d / %d", index + 1, count);
+          lv_label_set_text(id(lbl_todo_counter), counter);
+
+          bool completed = id(todo_item_completed)[index] != 0;
+          lv_label_set_text(id(lbl_todo_action), completed ? "REOPEN TASK" : "MARK DONE");
+          lv_color_t action_color = completed ? lv_color_hex(0x77D99A) : lv_color_hex(0xF1B65B);
+          lv_obj_set_style_bg_color(id(btn_todo_action),
+            completed ? lv_color_hex(0x173122) : lv_color_hex(0x302414), LV_PART_MAIN);
+          lv_obj_set_style_border_color(id(btn_todo_action), action_color, LV_PART_MAIN);
+          lv_obj_set_style_text_color(id(lbl_todo_action), action_color, 0);
+
+lvgl:
+  pages:
+    - id: page_todo
+      bg_color: col_todo_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - lambda: lv_obj_clear_flag(lv_scr_act(), LV_OBJ_FLAG_SCROLLABLE);
+        - script.execute: refresh_todo
+      widgets:
+        - obj:
+            align: CENTER
+            x: 0
+            y: 0
+            width: 100%
+            height: 100%
+            radius: 50%
+            clip_corner: true
+            bg_color: col_todo_bg
+            bg_opa: COVER
+            border_width: 0
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            widgets:
+              - label:
+                  id: lbl_todo_title
+                  align: CENTER
+                  y: -34%
+                  text: "TO-DO"
+                  text_font: font_todo_title
+                  text_color: col_todo_accent
+
+              - obj:
+                  id: card_todo_item
+                  align: CENTER
+                  y: -3%
+                  width: 84%
+                  height: 44%
+                  radius: 8%
+                  bg_color: col_todo_panel
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: col_todo_border
+                  pad_all: 12
+                  clickable: false
+                  scrollbar_mode: "OFF"
+                  widgets:
+                    - label:
+                        id: lbl_todo_item
+                        align: CENTER
+                        width: 88%
+                        height: 88%
+                        long_mode: WRAP
+                        text: "Loading tasks..."
+                        text_font: font_todo_item
+                        text_color: 0xF4F7F4
+
+              - label:
+                  id: lbl_todo_counter
+                  align: CENTER
+                  y: 24%
+                  text: "0 / 0"
+                  text_font: font_todo_meta
+                  text_color: col_todo_muted
+
+              - obj:
+                  id: btn_todo_action
+                  align: CENTER
+                  y: 37%
+                  width: 58%
+                  height: 10%
+                  radius: 50%
+                  bg_color: col_todo_panel
+                  bg_opa: COVER
+                  border_width: 1
+                  border_color: col_todo_border
+                  clickable: true
+                  scrollbar_mode: "OFF"
+                  on_click:
+                    - script.execute: todo_toggle_selected
+                  widgets:
+                    - label:
+                        id: lbl_todo_action
+                        align: CENTER
+                        text: "MARK DONE"
+                        text_font: font_todo_meta
+                        text_color: col_todo_open

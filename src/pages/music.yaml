@@ -58,6 +58,10 @@ text_sensor:
     id: media_player_title
     entity_id: ${music_player_entity}
     attribute: title
+    on_value:
+      - lambda: |-
+          lv_label_set_text(id(lbl_music_title),
+            x.empty() || x == "unknown" ? "Ready to Play" : x.c_str());
 
   - platform: homeassistant
     id: media_player_status
@@ -302,6 +306,12 @@ lvgl:
       bg_color: col_music_bg
       bg_opa: COVER
       scrollbar_mode: "OFF"
+      on_load:
+        - lambda: |-
+            int screen_width = lv_obj_get_width(lv_scr_act());
+            lv_obj_set_style_text_font(id(lbl_music_title),
+              screen_width >= 400 ? id(font_music_title) : id(font_val), 0);
+            lv_img_set_zoom(id(img_music_cover), (uint16_t)(screen_width * 0.4f));
       widgets:
         - obj:
             align: TOP_LEFT
@@ -365,8 +375,9 @@ lvgl:
                         y: 6
               - label:
                   id: lbl_music_title
-                  x: 20
-                  y: 134
+                  align: CENTER
+                  x: 0
+                  y: 28%
                   width: 83%
                   text: "Ready to Play"
                   text_font: font_music_title
@@ -380,23 +391,25 @@ lvgl:
               - label:
                   text_font: media_player_icons
                   text: ${icon_volume}
-                  x: 70
-                  y: 150
+                  align: CENTER
+                  x: -20%
+                  y: 31%
                   text_color: 0xFFFFFF
 
-              - obj: {id: vol_bar_1, x: 194,  y: 310, width: 12, height: 24, radius: 6, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_2, x: 214, y: 310, width: 12, height: 24, radius: 6, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_3, x: 234, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_4, x: 254, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_5, x: 274, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_6, x: 294, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
-              - obj: {id: vol_bar_7, x: 314, y: 310, width: 12, height: 24, radius: 6, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_1, align: CENTER, x: -8.3%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_2, align: CENTER, x: -4.2%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0xA387FF, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_3, align: CENTER, x: 0, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_4, align: CENTER, x: 4.2%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_5, align: CENTER, x: 8.3%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_6, align: CENTER, x: 12.5%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
+              - obj: {id: vol_bar_7, align: CENTER, x: 16.7%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0x000000, bg_opa: COVER, border_width: 0, clickable: false}
 
               - button:
-                  x: 124
-                  y: 368
-                  width: 10%
-                  height: 10%
+                  align: CENTER
+                  x: -20%
+                  y: 31%
+                  width: 12%
+                  height: 12%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
@@ -416,11 +429,12 @@ lvgl:
                         align: CENTER
 
               - button:
-                  x: 204
-                  y: 350
+                  align: CENTER
+                  x: 0
+                  y: 28%
                   id: play_btn
-                  width: 11%
-                  height: 11%
+                  width: 14%
+                  height: 14%
                   radius: 5%
                   bg_color: col_music_play_btn
                   bg_opa: COVER
@@ -442,10 +456,11 @@ lvgl:
 
               - button:
                   id: next_btn
-                  x: 322
-                  y: 368
-                  width: 10%
-                  height: 10%
+                  align: CENTER
+                  x: 20%
+                  y: 31%
+                  width: 12%
+                  height: 12%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
