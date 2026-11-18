@@ -409,7 +409,17 @@ select:
       - Weather
     set_action:
       - lambda: |-
-          if (x == "Menu") id(open_menu).execute();
+          if (x == "Menu") {
+            const std::string page = id(active_page).current_option().str();
+            if (page == "Timer") id(menu_sel) = 0;
+            else if (page == "To-do") id(menu_sel) = 1;
+            else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
+            else if (page == "Climate") id(menu_sel) = 3;
+            else if (page == "Music") id(menu_sel) = 4;
+            else if (page == "Weather") id(menu_sel) = 5;
+            else if (page != "Menu") id(menu_sel) = 6;
+            id(open_menu).execute();
+          }
           else if (x == "Clock") id(open_clock).execute();
           else if (x == "Light") id(open_light).execute();
           else if (x == "Color picker") id(open_colorpicker).execute();

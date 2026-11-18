@@ -295,7 +295,7 @@ script:
           int v = id(light_brightness) + id(light_brightness_step);
           id(light_brightness) = v > 100 ? 100 : v;
       - script.execute: refresh_light_arc
-      - delay: 120ms
+      - delay: 40ms
       - if:
           condition:
             lambda: 'return id(light_on);'
@@ -318,7 +318,7 @@ script:
           int v = id(light_brightness) - id(light_brightness_step);
           id(light_brightness) = v < 0 ? 0 : v;
       - script.execute: refresh_light_arc
-      - delay: 120ms
+      - delay: 40ms
       - if:
           condition:
             lambda: 'return id(light_on);'

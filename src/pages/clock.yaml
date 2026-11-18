@@ -562,7 +562,7 @@ lvgl:
             align: CENTER
             x: -30%
             y: -20%
-            text_font: font_clock
+            text_font: font_mdi_icons
             text_color: col_text_wind
             text: "\U000F0590"
 

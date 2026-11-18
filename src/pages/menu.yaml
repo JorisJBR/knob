@@ -23,7 +23,7 @@ font:
     id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0595\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
 
 color:
   - id: col_menu_bg
@@ -58,8 +58,8 @@ script:
     then:
       - lambda: |-
           const std::string page = id(active_page).current_option().str();
-          if (page == "Menu") return;
-          if (page == "Timer") id(menu_sel) = 0;
+          if (page == "Menu") {
+          } else if (page == "Timer") id(menu_sel) = 0;
           else if (page == "To-do") id(menu_sel) = 1;
           else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
           else if (page == "Climate") id(menu_sel) = 3;
