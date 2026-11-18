@@ -120,6 +120,11 @@ script:
                   id(close_clock).execute();
                   return;
                 }
+                if (id(in_weather)) {
+                  id(in_weather) = false;
+                  id(open_menu).execute();
+                  return;
+                }
                 if (id(in_light) || id(in_colorpicker)) {
                   id(close_light).execute();
                   return;
@@ -198,16 +203,18 @@ script:
             - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
-            lambda: 'return (id(in_clock) || id(in_weather)) && !id(in_menu) && !id(button_debounce);'
+            lambda: 'return id(in_clock) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
-            - if:
-                condition:
-                  lambda: 'return id(in_weather);'
-                then:
-                  - script.execute: close_forecast
-                else:
-                  - script.execute: open_forecast
+            - script.execute: timer_toggle
+            - delay: 250ms
+            - globals.set: {id: button_debounce, value: 'false'}
+      - if:
+          condition:
+            lambda: 'return id(in_weather) && !id(in_menu) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: close_forecast
             - delay: 250ms
             - globals.set: {id: button_debounce, value: 'false'}
 
