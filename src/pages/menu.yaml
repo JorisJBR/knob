@@ -372,9 +372,21 @@ script:
           char home_temperature[16];
           snprintf(ac_temperature, sizeof(ac_temperature), "%.1f", id(ha_air_target_temp).state);
           snprintf(home_temperature, sizeof(home_temperature), "%.1f", id(ha_temperature).state);
+          int todo_done_count = 0;
+          for (int completed : id(todo_item_completed)) {
+            if (completed) todo_done_count++;
+          }
+          std::string todo_summary;
+          if (!id(todo_has_fetched)) {
+            todo_summary = id(todo_fetch_error) ? "Tasks unavailable" : "Loading tasks";
+          } else {
+            int todo_open_count = id(todo_count) - todo_done_count;
+            todo_summary = std::to_string(todo_done_count) + " done / " +
+                           std::to_string(todo_open_count) + " open";
+          }
           std::string subtitles[7] = {
             "5 minutes",
-            std::to_string(id(todo_count)) + (id(todo_count) == 1 ? " task" : " tasks"),
+            todo_summary,
             std::to_string(id(light_brightness)) + " %",
             id(ha_air_hvac_mode).state + " - " + ac_temperature + "C",
             id(media_player_status).state + " - " + id(media_player_title).state,
