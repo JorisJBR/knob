@@ -103,8 +103,18 @@ script:
             lv_label_set_text(id(lbl_status), "Connected!");
             lv_label_set_text(id(lbl_sub),    "Home Assistant");
             id(check_boot_status).execute();
-            id(fetch_todo_items).execute();
+            id(prefetch_todo_items).execute();
           }
+
+  - id: prefetch_todo_items
+    mode: restart
+    then:
+      - delay: 2s
+      - if:
+          condition:
+            lambda: 'return id(ha_connected);'
+          then:
+            - script.execute: fetch_todo_items
 
   - id: double_click
     then:

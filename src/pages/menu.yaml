@@ -56,7 +56,16 @@ globals:
 script:
   - id: open_menu
     then:
-      - globals.set: {id: menu_sel, value: '6'}
+      - lambda: |-
+          const std::string page = id(active_page).current_option().str();
+          if (page == "Menu") return;
+          if (page == "Timer") id(menu_sel) = 0;
+          else if (page == "To-do") id(menu_sel) = 1;
+          else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
+          else if (page == "Climate") id(menu_sel) = 3;
+          else if (page == "Music") id(menu_sel) = 4;
+          else if (page == "Weather") id(menu_sel) = 5;
+          else id(menu_sel) = 6;
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
       - lambda: 'id(active_page).publish_state("Menu");'
