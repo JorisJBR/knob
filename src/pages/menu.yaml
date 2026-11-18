@@ -18,10 +18,10 @@ font:
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
   - file: src/assets/fonts/materialdesignicons-webfont.ttf
-    id: font_menu_todo_icon
+    id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F0757"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
 
 color:
   - id: col_menu_bg
@@ -37,37 +37,6 @@ color:
   - id: col_menu_sdot_dim
     hex: "2A3348"
 
-image:
-  - file: src/assets/images/bulb.png
-    id: menu_img_light
-    type: RGB565
-    transparency: alpha_channel
-    resize: 68x68
-  - file: src/assets/images/ac_logo.png
-    id: menu_img_ac
-    type: RGB565
-    transparency: alpha_channel
-    resize: 64x64
-  - file: src/assets/images/music.png
-    id: menu_img_music
-    type: RGB565
-    transparency: alpha_channel
-    resize: 68x68
-  - file: src/assets/images/safe.png
-    id: menu_img_todo
-    type: RGB565
-    transparency: alpha_channel
-    resize: 68x68
-  - file: src/assets/images/timer.png
-    id: menu_img_timer
-    type: RGB565
-    transparency: alpha_channel
-    resize: 64x64
-  - file: src/assets/images/home.png
-    id: menu_img_home
-    type: RGB565
-    transparency: alpha_channel
-    resize: 68x68
 globals:
   - id: menu_sel
     type: int
@@ -149,14 +118,9 @@ script:
                     id(slot_near_dn), id(slot_far_dn)
                   };
 
-                  lv_obj_t* icons[5] = {
-                    id(slot_far_up_img),  id(slot_near_up_img),
-                    id(slot_center_img),
-                    id(slot_near_dn_img), id(slot_far_dn_img)
-                  };
-                  lv_obj_t* todo_icons[5] = {
-                    id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
-                    id(slot_near_dn_todo), id(slot_far_dn_todo)
+                  lv_obj_t* icon_labels[5] = {
+                    id(slot_far_up_icon), id(slot_near_up_icon), id(slot_center_icon),
+                    id(slot_near_dn_icon), id(slot_far_dn_icon)
                   };
                   lv_obj_t* title_lbls[5] = {
                     id(slot_far_up_lbl),  id(slot_near_up_lbl),
@@ -211,8 +175,7 @@ script:
                         (int)(y - 32.0f * scale));
                     }
 
-                    lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
-                    lv_obj_set_style_opa(todo_icons[i], opa_icon, LV_PART_MAIN);
+                    lv_obj_set_style_opa(icon_labels[i], opa_icon, LV_PART_MAIN);
                     lv_obj_set_style_opa(title_lbls[i], opa_text, LV_PART_MAIN);
 
                     if (i == 2) {
@@ -274,14 +237,9 @@ script:
                     id(slot_near_dn), id(slot_far_dn)
                   };
 
-                  lv_obj_t* icons[5] = {
-                    id(slot_far_up_img),  id(slot_near_up_img),
-                    id(slot_center_img),
-                    id(slot_near_dn_img), id(slot_far_dn_img)
-                  };
-                  lv_obj_t* todo_icons[5] = {
-                    id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
-                    id(slot_near_dn_todo), id(slot_far_dn_todo)
+                  lv_obj_t* icon_labels[5] = {
+                    id(slot_far_up_icon), id(slot_near_up_icon), id(slot_center_icon),
+                    id(slot_near_dn_icon), id(slot_far_dn_icon)
                   };
                   lv_obj_t* title_lbls[5] = {
                     id(slot_far_up_lbl),  id(slot_near_up_lbl),
@@ -336,8 +294,7 @@ script:
                         (int)(y - 32.0f * scale));
                     }
 
-                    lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
-                    lv_obj_set_style_opa(todo_icons[i], opa_icon, LV_PART_MAIN);
+                    lv_obj_set_style_opa(icon_labels[i], opa_icon, LV_PART_MAIN);
                     lv_obj_set_style_opa(title_lbls[i], opa_text, LV_PART_MAIN);
 
                     if (i == 2) {
@@ -379,14 +336,9 @@ script:
             return s * (a <= 1.0f ? a * 120.0f * scale : 120.0f * scale + (a - 1.0f) * 72.0f * scale);
           };
 
-          lv_obj_t* icons[5] = {
-            id(slot_far_up_img),  id(slot_near_up_img),
-            id(slot_center_img),
-            id(slot_near_dn_img), id(slot_far_dn_img)
-          };
-          lv_obj_t* todo_icons[5] = {
-            id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
-            id(slot_near_dn_todo), id(slot_far_dn_todo)
+          lv_obj_t* icon_labels[5] = {
+            id(slot_far_up_icon), id(slot_near_up_icon), id(slot_center_icon),
+            id(slot_near_dn_icon), id(slot_far_dn_icon)
           };
           lv_obj_t* title_lbls[5] = {
             id(slot_far_up_lbl),  id(slot_near_up_lbl),
@@ -400,54 +352,30 @@ script:
           const lv_font_t* sub_font = id(font_menu_sub)->get_lv_font();
           const int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
-          // const char* TITLES[6]    = {"", "", "Lights", "AC", "Music", "Clock"};
-          static const char* titles[6];
-          static char bufTimertt[64];
-          static char bufTodott[64];
-          static char bufLighttt[64];
-          static char bufActt[64];
-          static char bufMusictt[64];
-          static char bufClocktt[64];
-          sprintf(bufTimertt, "%s", "Timer");
-          sprintf(bufTodott, "%s", "To-do");
-          sprintf(bufClocktt, "%s", "Home");
-          sprintf(bufLighttt, "%s", id(ha_light_fname).state.c_str());
-          sprintf(bufActt, "%s", id(ha_air_fname).state.c_str());
-          sprintf(bufMusictt, "%s", id(media_player_fname).state.c_str());
-          titles[0] = bufTimertt;
-          titles[1] = bufTodott;
-          titles[2] = bufLighttt;
-          titles[3] = bufActt;
-          titles[4] = bufMusictt;
-          titles[5] = bufClocktt;
+          std::string titles[6] = {
+            "Timer", "To-do",
+            id(ha_light_fname).state.empty() ? "Light" : id(ha_light_fname).state,
+            id(ha_air_fname).state.empty() ? "Climate" : id(ha_air_fname).state,
+            id(media_player_fname).state.empty() ? "Music" : id(media_player_fname).state,
+            "Home"
+          };
 
-          static const char* subtitles[6];
-          static char bufTimer[64];
-          static char bufTodo[64];
-          static char bufLight[64];
-          static char bufAc[64];
-          static char bufMusic[64];
-          static char bufClock[64];
-          sprintf(bufTimer, "%d minutes", 5);
-          sprintf(bufTodo, "%d tasks", id(todo_count));
-          sprintf(bufLight, "%d %%", (int)id(light_brightness));
-          sprintf(bufAc, "%s - %.1fC", id(ha_air_hvac_mode).state.c_str(), id(ha_air_target_temp).state);
-          sprintf(bufMusic, "%s - %s", id(media_player_status).state.c_str(), id(media_player_title).state.c_str());
-          sprintf(bufClock, "%.1fC", id(ha_temperature).state);
-          subtitles[0] = bufTimer;
-          subtitles[1] = bufTodo;
-          subtitles[2] = bufLight;
-          subtitles[3] = bufAc;
-          subtitles[4] = bufMusic;
-          subtitles[5] = bufClock;
+          char ac_temperature[16];
+          char home_temperature[16];
+          snprintf(ac_temperature, sizeof(ac_temperature), "%.1f", id(ha_air_target_temp).state);
+          snprintf(home_temperature, sizeof(home_temperature), "%.1f", id(ha_temperature).state);
+          std::string subtitles[6] = {
+            "5 minutes",
+            std::to_string(id(todo_count)) + (id(todo_count) == 1 ? " task" : " tasks"),
+            std::to_string(id(light_brightness)) + " %",
+            id(ha_air_hvac_mode).state + " - " + ac_temperature + "C",
+            id(media_player_status).state + " - " + id(media_player_title).state,
+            std::string(home_temperature) + "C"
+          };
           
-          const lv_img_dsc_t* IMGS[6] = {
-            id(menu_img_timer)->get_lv_image_dsc(),
-            id(menu_img_todo)->get_lv_image_dsc(),
-            id(menu_img_light)->get_lv_image_dsc(),
-            id(menu_img_ac)->get_lv_image_dsc(),
-            id(menu_img_music)->get_lv_image_dsc(),
-            id(menu_img_home)->get_lv_image_dsc()
+          const char* ICONS[6] = {
+            "\U000F051B", "\U000F0756", "\U000F06E8",
+            "\U000F001B", "\U000F075A", "\U000F02DC"
           };
           // Per-item accent colors: Timer, To-do, Lights, AC, Music, Home
           const uint32_t ACCENT_COLORS[6] = {
@@ -534,15 +462,10 @@ script:
             lv_label_set_long_mode(title_lbls[slot], slot == 2
               ? LV_LABEL_LONG_SCROLL_CIRCULAR : LV_LABEL_LONG_DOT);
             if (slot == 2) lv_obj_set_style_anim_time(title_lbls[slot], 9000, LV_PART_MAIN);
-            lv_img_set_zoom(icons[slot], (uint16_t)(256 * scale));
-            if (di == 1) {
-              lv_obj_add_flag(icons[slot], LV_OBJ_FLAG_HIDDEN);
-              lv_obj_clear_flag(todo_icons[slot], LV_OBJ_FLAG_HIDDEN);
-              lv_obj_set_style_opa(todo_icons[slot], slot == 2 ? 255 : opa_icon, LV_PART_MAIN);
-            } else {
-              lv_obj_clear_flag(icons[slot], LV_OBJ_FLAG_HIDDEN);
-              lv_obj_add_flag(todo_icons[slot], LV_OBJ_FLAG_HIDDEN);
-            }
+            lv_obj_set_style_text_font(icon_labels[slot], id(font_mdi_icons)->get_lv_font(), LV_PART_MAIN);
+            lv_label_set_text(icon_labels[slot], ICONS[di]);
+            lv_obj_set_style_text_color(icon_labels[slot],
+              slot == 2 ? lv_color_hex(ACCENT_COLORS[di]) : lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 
             // Update accent bar position to follow center slot
             if (slot == 2) {
@@ -553,7 +476,7 @@ script:
               lv_obj_set_style_opa(id(slot_center_bar), 0, LV_PART_MAIN); // Hide the bar
             }
 
-            lv_label_set_text(title_lbls[slot], titles[di]);
+            lv_label_set_text(title_lbls[slot], titles[di].c_str());
             // Center slot title uses accent color, others use dim
             if (slot == 2) {
               lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(ACCENT_COLORS[di]), LV_PART_MAIN);
@@ -561,13 +484,12 @@ script:
               lv_obj_set_style_text_color(title_lbls[slot], lv_color_hex(0x232A38), LV_PART_MAIN);
             }
             lv_obj_set_style_opa(title_lbls[slot], slot == 2 ? 255 : opa_text, LV_PART_MAIN);
-            lv_img_set_src(icons[slot], IMGS[di]);
-            lv_obj_set_style_opa(icons[slot], slot == 2 ? 255 : opa_icon, LV_PART_MAIN);
+            lv_obj_set_style_opa(icon_labels[slot], slot == 2 ? 255 : opa_icon, LV_PART_MAIN);
           }
 
           {
             int ci = ((sel) % ITEM_N + ITEM_N) % ITEM_N;
-            lv_label_set_text(id(slot_center_sub), subtitles[ci]);
+            lv_label_set_text(id(slot_center_sub), subtitles[ci].c_str());
             lv_obj_set_style_text_font(id(slot_center_sub), sub_font, LV_PART_MAIN);
             lv_obj_set_pos(id(slot_center_sub), (int)(108 * scale), (int)(60 * scale));
             lv_obj_set_width(id(slot_center_sub), (int)fmaxf(24.0f, 336.0f * scale - 124.0f * scale));
@@ -660,17 +582,12 @@ lvgl:
                         pad_all: 0
                         clickable: false
                         widgets:
-                          - image:
-                              id: slot_far_up_img
-                              align: LEFT_MID
-                              x: 4
-                              src: menu_img_timer
                           - label:
-                              id: slot_far_up_todo
+                              id: slot_far_up_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F0757"
-                              text_font: font_menu_todo_icon
+                              text: "\U000F051B"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_far_up_lbl
@@ -693,17 +610,12 @@ lvgl:
                         pad_all: 0
                         clickable: false
                         widgets:
-                          - image:
-                              id: slot_near_up_img
-                              align: LEFT_MID
-                              x: 4
-                              src: menu_img_todo
                           - label:
-                              id: slot_near_up_todo
+                              id: slot_near_up_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F0757"
-                              text_font: font_menu_todo_icon
+                              text: "\U000F0756"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_near_up_lbl
@@ -742,17 +654,12 @@ lvgl:
                         pad_all: 0
                         clickable: false
                         widgets:
-                          - image:
-                              id: slot_center_img
-                              align: LEFT_MID
-                              x: 28
-                              src: menu_img_light
                           - label:
-                              id: slot_center_todo
+                              id: slot_center_icon
                               align: LEFT_MID
                               x: 28
-                              text: "\U000F0757"
-                              text_font: font_menu_todo_icon
+                              text: "\U000F06E8"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_center_lbl
@@ -785,17 +692,12 @@ lvgl:
                         pad_all: 0
                         clickable: false
                         widgets:
-                          - image:
-                              id: slot_near_dn_img
-                              align: LEFT_MID
-                              x: 4
-                              src: menu_img_ac
                           - label:
-                              id: slot_near_dn_todo
+                              id: slot_near_dn_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F0757"
-                              text_font: font_menu_todo_icon
+                              text: "\U000F001B"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_near_dn_lbl
@@ -818,17 +720,12 @@ lvgl:
                         pad_all: 0
                         clickable: false
                         widgets:
-                          - image:
-                              id: slot_far_dn_img
-                              align: LEFT_MID
-                              x: 2
-                              src: menu_img_music
                           - label:
-                              id: slot_far_dn_todo
+                              id: slot_far_dn_icon
                               align: LEFT_MID
                               x: 2
-                              text: "\U000F0757"
-                              text_font: font_menu_todo_icon
+                              text: "\U000F075A"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_far_dn_lbl
@@ -853,10 +750,11 @@ lvgl:
                   clickable: false
                   scrollbar_mode: "OFF"
                   widgets:
-                    - image:
-                        src: menu_img_home
+                    - label:
+                        text: "\U000F02DC"
+                        text_font: font_mdi_icons
+                        text_color: col_menu_accent
                         align: CENTER
-                        opa: TRANSP
 
               - obj:
                   id: sdot_0

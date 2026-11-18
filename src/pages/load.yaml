@@ -14,48 +14,6 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .:%\xc2\xb0/-"
 
-image:
-  - file: src/assets/images/logo.png
-    id: logo_img
-    type: RGB565
-    transparency: alpha_channel
-    resize: 72x72
-  - file: src/assets/images/scene.png
-    id: img_scene
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/bulb.png
-    id: img_light
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/ac.png
-    id: img_ac
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/music.png
-    id: img_music
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/palette.png
-    id: img_palette
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/brightness.png
-    id: img_brightness
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-  - file: src/assets/images/light.png
-    id: img_dengguang
-    type: RGB565
-    transparency: alpha_channel
-    resize: 24x24
-
 color:
   - id: col_bg
     hex: "050812"
@@ -383,8 +341,10 @@ lvgl:
                         arc_color: col_blue
                         arc_width: 3
 
-            - image:
-                src: logo_img
+            - label:
+                text: "\U000F062E"
+                text_font: font_mdi_icons
+                text_color: col_blue
                 align: CENTER
                 y: -22
 

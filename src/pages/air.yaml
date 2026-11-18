@@ -23,43 +23,6 @@ font:
     bpp: 4
     glyphs: "\xc2\xb0"
 
-image:
-  - file: src/assets/images/air_page/fan_off.png
-    id: img_air_fan_off
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
-  - file: src/assets/images/air_page/fan_on.png
-    id: img_air_fan_on
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
-  - file: src/assets/images/air_page/power_off.png
-    id: img_air_power_off
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
-  - file: src/assets/images/air_page/power_on.png
-    id: img_air_power_on
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
-  - file: src/assets/images/air_page/swing_off.png
-    id: img_air_swing_off
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
-  - file: src/assets/images/air_page/swing_on.png
-    id: img_air_swing_on
-    type: RGB565
-    transparency: alpha_channel
-    resize: 50x50
-
 color:
   - id: col_air_bg
     hex: "000000"
@@ -400,9 +363,9 @@ script:
 
           lv_arc_set_value(id(air_set_arc), t);
 
-          lv_img_set_src(id(img_air_fan_btn), id(air_mode) == 1 ? id(img_air_fan_on) : id(img_air_fan_off));
-          lv_img_set_src(id(img_air_power_btn), id(air_btn_power_active) ? id(img_air_power_on) : id(img_air_power_off));
-          lv_img_set_src(id(img_air_swing_btn), id(air_btn_swing_active) ? id(img_air_swing_on) : id(img_air_swing_off));
+          lv_label_set_text(id(lbl_air_fan_icon), id(air_mode) == 1 ? "\U000F0210" : "\U000F081D");
+          lv_label_set_text(id(lbl_air_power_icon), id(air_btn_power_active) ? "\U000F0425" : "\U000F0902");
+          lv_label_set_text(id(lbl_air_swing_icon), id(air_btn_swing_active) ? "\U000F04E1" : "\U000F001B");
 
           lv_obj_set_style_border_width(id(btn_air_fan), id(air_mode) == 1 ? 2 : 0, LV_PART_MAIN);
           lv_obj_set_style_border_color(id(btn_air_fan), lv_color_hex(0x00D7FF), LV_PART_MAIN);
@@ -673,10 +636,12 @@ lvgl:
                   on_click:
                     - script.execute: air_toggle_mode
                   widgets:
-                    - image:
-                        id: img_air_fan_btn
+                    - label:
+                        id: lbl_air_fan_icon
                         align: CENTER
-                        src: img_air_fan_off
+                        text: "\U000F081D"
+                        text_font: font_mdi_icons
+                        text_color: 0xFFFFFF
 
               - obj:
                   id: btn_air_power
@@ -702,10 +667,12 @@ lvgl:
                           hvac_mode: !lambda 'return id(air_btn_power_active) ? std::string("auto") : std::string("off");'
                     - script.execute: refresh_air
                   widgets:
-                    - image:
-                        id: img_air_power_btn
+                    - label:
+                        id: lbl_air_power_icon
                         align: CENTER
-                        src: img_air_power_off
+                        text: "\U000F0425"
+                        text_font: font_mdi_icons
+                        text_color: 0xFFFFFF
 
               - obj:
                   id: btn_air_swing
@@ -723,7 +690,9 @@ lvgl:
                   on_click:
                     - script.execute: air_swing_toggle
                   widgets:
-                    - image:
-                        id: img_air_swing_btn
+                    - label:
+                        id: lbl_air_swing_icon
                         align: CENTER
-                        src: img_air_swing_off
+                        text: "\U000F001B"
+                        text_font: font_mdi_icons
+                        text_color: 0xFFFFFF
