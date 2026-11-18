@@ -17,6 +17,12 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
+  - file: src/assets/fonts/materialdesignicons-webfont.ttf
+    id: font_menu_todo_icon
+    size: 48
+    bpp: 4
+    glyphs: "\U000F0757"
+
 color:
   - id: col_menu_bg
     hex: "000000"
@@ -148,6 +154,10 @@ script:
                     id(slot_center_img),
                     id(slot_near_dn_img), id(slot_far_dn_img)
                   };
+                  lv_obj_t* todo_icons[5] = {
+                    id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
+                    id(slot_near_dn_todo), id(slot_far_dn_todo)
+                  };
                   lv_obj_t* title_lbls[5] = {
                     id(slot_far_up_lbl),  id(slot_near_up_lbl),
                     id(slot_center_lbl),
@@ -202,6 +212,7 @@ script:
                     }
 
                     lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
+                    lv_obj_set_style_opa(todo_icons[i], opa_icon, LV_PART_MAIN);
                     lv_obj_set_style_opa(title_lbls[i], opa_text, LV_PART_MAIN);
 
                     if (i == 2) {
@@ -268,6 +279,10 @@ script:
                     id(slot_center_img),
                     id(slot_near_dn_img), id(slot_far_dn_img)
                   };
+                  lv_obj_t* todo_icons[5] = {
+                    id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
+                    id(slot_near_dn_todo), id(slot_far_dn_todo)
+                  };
                   lv_obj_t* title_lbls[5] = {
                     id(slot_far_up_lbl),  id(slot_near_up_lbl),
                     id(slot_center_lbl),
@@ -322,6 +337,7 @@ script:
                     }
 
                     lv_obj_set_style_opa(icons[i], opa_icon, LV_PART_MAIN);
+                    lv_obj_set_style_opa(todo_icons[i], opa_icon, LV_PART_MAIN);
                     lv_obj_set_style_opa(title_lbls[i], opa_text, LV_PART_MAIN);
 
                     if (i == 2) {
@@ -367,6 +383,10 @@ script:
             id(slot_far_up_img),  id(slot_near_up_img),
             id(slot_center_img),
             id(slot_near_dn_img), id(slot_far_dn_img)
+          };
+          lv_obj_t* todo_icons[5] = {
+            id(slot_far_up_todo), id(slot_near_up_todo), id(slot_center_todo),
+            id(slot_near_dn_todo), id(slot_far_dn_todo)
           };
           lv_obj_t* title_lbls[5] = {
             id(slot_far_up_lbl),  id(slot_near_up_lbl),
@@ -476,7 +496,7 @@ script:
             int opa_bg = 0;
             int pill_shift = 0;
             if (mix > 760) {
-              w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
+              w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(420 * scale));
             }
             if (mix > 840) {
               opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -515,6 +535,14 @@ script:
               ? LV_LABEL_LONG_SCROLL_CIRCULAR : LV_LABEL_LONG_DOT);
             if (slot == 2) lv_obj_set_style_anim_time(title_lbls[slot], 9000, LV_PART_MAIN);
             lv_img_set_zoom(icons[slot], (uint16_t)(256 * scale));
+            if (di == 1) {
+              lv_obj_add_flag(icons[slot], LV_OBJ_FLAG_HIDDEN);
+              lv_obj_clear_flag(todo_icons[slot], LV_OBJ_FLAG_HIDDEN);
+              lv_obj_set_style_opa(todo_icons[slot], slot == 2 ? 255 : opa_icon, LV_PART_MAIN);
+            } else {
+              lv_obj_clear_flag(icons[slot], LV_OBJ_FLAG_HIDDEN);
+              lv_obj_add_flag(todo_icons[slot], LV_OBJ_FLAG_HIDDEN);
+            }
 
             // Update accent bar position to follow center slot
             if (slot == 2) {
@@ -638,6 +666,13 @@ lvgl:
                               x: 4
                               src: menu_img_timer
                           - label:
+                              id: slot_far_up_todo
+                              align: LEFT_MID
+                              x: 4
+                              text: "\U000F0757"
+                              text_font: font_menu_todo_icon
+                              text_color: 0xFFFFFF
+                          - label:
                               id: slot_far_up_lbl
                               align: LEFT_MID
                               x: 76
@@ -663,6 +698,13 @@ lvgl:
                               align: LEFT_MID
                               x: 4
                               src: menu_img_todo
+                          - label:
+                              id: slot_near_up_todo
+                              align: LEFT_MID
+                              x: 4
+                              text: "\U000F0757"
+                              text_font: font_menu_todo_icon
+                              text_color: 0xFFFFFF
                           - label:
                               id: slot_near_up_lbl
                               align: LEFT_MID
@@ -706,6 +748,13 @@ lvgl:
                               x: 28
                               src: menu_img_light
                           - label:
+                              id: slot_center_todo
+                              align: LEFT_MID
+                              x: 28
+                              text: "\U000F0757"
+                              text_font: font_menu_todo_icon
+                              text_color: 0xFFFFFF
+                          - label:
                               id: slot_center_lbl
                               x: 108
                               y: 12
@@ -742,6 +791,13 @@ lvgl:
                               x: 4
                               src: menu_img_ac
                           - label:
+                              id: slot_near_dn_todo
+                              align: LEFT_MID
+                              x: 4
+                              text: "\U000F0757"
+                              text_font: font_menu_todo_icon
+                              text_color: 0xFFFFFF
+                          - label:
                               id: slot_near_dn_lbl
                               align: LEFT_MID
                               x: 76
@@ -767,6 +823,13 @@ lvgl:
                               align: LEFT_MID
                               x: 2
                               src: menu_img_music
+                          - label:
+                              id: slot_far_dn_todo
+                              align: LEFT_MID
+                              x: 2
+                              text: "\U000F0757"
+                              text_font: font_menu_todo_icon
+                              text_color: 0xFFFFFF
                           - label:
                               id: slot_far_dn_lbl
                               align: LEFT_MID

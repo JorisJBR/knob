@@ -67,6 +67,9 @@ globals:
   - id: todo_updating
     type: bool
     initial_value: 'false'
+  - id: todo_animating
+    type: bool
+    initial_value: 'false'
   - id: todo_item_ids
     type: std::vector<std::string>
     restore_value: false
@@ -132,6 +135,7 @@ script:
                   id(todo_item_completed).push_back(status == "completed" ? 1 : 0);
                 }
                 id(todo_count) = id(todo_item_ids).size();
+                ESP_LOGI("todo", "Loaded %d items", id(todo_count));
                 if (id(todo_count) == 0 || id(todo_selected) >= id(todo_count)) {
                   id(todo_selected) = 0;
                 }
@@ -144,6 +148,7 @@ script:
                   ESP_LOGW("todo", "todo.get_items response was not an item array: %s", response_summary);
                 }
             - script.execute: refresh_todo
+            - script.execute: refresh_menu
           on_error:
             - lambda: |-
                 id(todo_fetching) = false;
@@ -167,16 +172,52 @@ script:
     then:
       - lambda: |-
           int count = id(todo_count);
-          if (count == 0 || id(todo_updating)) return;
+          if (count == 0 || id(todo_updating) || id(todo_animating)) return;
           id(todo_selected) = (id(todo_selected) + count - 1) % count;
+          id(todo_animating) = true;
+          int slide_from = -lv_obj_get_width(lv_scr_act());
+          lv_obj_set_x(id(card_todo_item), slide_from);
+          id(refresh_todo).execute();
+          static lv_anim_t animation;
+          lv_anim_init(&animation);
+          lv_anim_set_var(&animation, id(card_todo_item));
+          lv_anim_set_values(&animation, slide_from, 0);
+          lv_anim_set_time(&animation, 260);
+          lv_anim_set_path_cb(&animation, lv_anim_path_ease_out);
+          lv_anim_set_exec_cb(&animation, [](void* object, int32_t x) {
+            lv_obj_set_x((lv_obj_t*)object, x);
+          });
+          lv_anim_set_ready_cb(&animation, [](lv_anim_t*) {
+            lv_obj_set_x(id(card_todo_item), 0);
+            id(todo_animating) = false;
+          });
+          lv_anim_start(&animation);
       - script.execute: refresh_todo
 
   - id: select_todo_next
     then:
       - lambda: |-
           int count = id(todo_count);
-          if (count == 0 || id(todo_updating)) return;
+          if (count == 0 || id(todo_updating) || id(todo_animating)) return;
           id(todo_selected) = (id(todo_selected) + 1) % count;
+          id(todo_animating) = true;
+          int slide_from = lv_obj_get_width(lv_scr_act());
+          lv_obj_set_x(id(card_todo_item), slide_from);
+          id(refresh_todo).execute();
+          static lv_anim_t animation;
+          lv_anim_init(&animation);
+          lv_anim_set_var(&animation, id(card_todo_item));
+          lv_anim_set_values(&animation, slide_from, 0);
+          lv_anim_set_time(&animation, 260);
+          lv_anim_set_path_cb(&animation, lv_anim_path_ease_out);
+          lv_anim_set_exec_cb(&animation, [](void* object, int32_t x) {
+            lv_obj_set_x((lv_obj_t*)object, x);
+          });
+          lv_anim_set_ready_cb(&animation, [](lv_anim_t*) {
+            lv_obj_set_x(id(card_todo_item), 0);
+            id(todo_animating) = false;
+          });
+          lv_anim_start(&animation);
       - script.execute: refresh_todo
 
   - id: todo_toggle_selected
@@ -189,7 +230,7 @@ script:
             - script.execute: fetch_todo_items
       - if:
           condition:
-            lambda: 'return id(todo_count) > 0 && !id(todo_updating);'
+            lambda: 'return id(todo_count) > 0 && !id(todo_updating) && !id(todo_animating);'
           then:
             - lambda: |-
                 int index = id(todo_selected);
