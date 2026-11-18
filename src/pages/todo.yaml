@@ -124,9 +124,8 @@ script:
                 JsonArrayConst items = item_data.as<JsonArrayConst>();
                 for (JsonObjectConst item : items) {
                   if (id(todo_item_ids).size() >= 12) break;
-                  std::string item_id = item["uid"] | item["id"] | "";
-                  if (item_id.empty()) continue;
-                  std::string title = item["summary"] | "Untitled task";
+                  std::string title = item["summary"] | item["title"] | item["name"] | "Untitled task";
+                  std::string item_id = item["uid"] | item["id"] | title;
                   std::string status = item["status"] | "needs_action";
                   id(todo_item_ids).push_back(item_id);
                   id(todo_item_titles).push_back(title);

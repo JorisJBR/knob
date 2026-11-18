@@ -509,8 +509,11 @@ script:
             lv_obj_set_style_text_font(title_lbls[slot], slot == 2 ? center_font : item_font, LV_PART_MAIN);
             int title_x = (int)((slot == 2 ? 108 : 76) * scale);
             lv_obj_set_x(title_lbls[slot], title_x);
-            lv_obj_set_width(title_lbls[slot], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
-            lv_label_set_long_mode(title_lbls[slot], LV_LABEL_LONG_DOT);
+            int title_width = (int)fmaxf(24.0f, w - title_x - 12.0f * scale);
+            lv_obj_set_width(title_lbls[slot], title_width);
+            lv_label_set_long_mode(title_lbls[slot], slot == 2
+              ? LV_LABEL_LONG_SCROLL_CIRCULAR : LV_LABEL_LONG_DOT);
+            if (slot == 2) lv_obj_set_style_anim_time(title_lbls[slot], 9000, LV_PART_MAIN);
             lv_img_set_zoom(icons[slot], (uint16_t)(256 * scale));
 
             // Update accent bar position to follow center slot
@@ -539,6 +542,9 @@ script:
             lv_label_set_text(id(slot_center_sub), subtitles[ci]);
             lv_obj_set_style_text_font(id(slot_center_sub), sub_font, LV_PART_MAIN);
             lv_obj_set_pos(id(slot_center_sub), (int)(108 * scale), (int)(60 * scale));
+            lv_obj_set_width(id(slot_center_sub), (int)fmaxf(24.0f, 336.0f * scale - 124.0f * scale));
+            lv_label_set_long_mode(id(slot_center_sub), LV_LABEL_LONG_SCROLL_CIRCULAR);
+            lv_obj_set_style_anim_time(id(slot_center_sub), 10000, LV_PART_MAIN);
             lv_obj_set_style_opa(id(slot_center_sub), 255, LV_PART_MAIN);
             // Sub label color matches accent
             lv_obj_set_style_text_color(id(slot_center_sub), lv_color_hex(ACCENT_COLORS[ci]), LV_PART_MAIN);
