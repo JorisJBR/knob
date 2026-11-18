@@ -1,19 +1,19 @@
 font:
   - file: "gfonts://DM+Sans"
     id: font_menu_item
-    size: 40
+    size: 30
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_center
-    size: 42
+    size: 34
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_sub
-    size: 24
+    size: 18
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
@@ -119,7 +119,7 @@ script:
                 lv_anim_init(&a);
                 lv_anim_set_var(&a, nullptr);
                 lv_anim_set_values(&a, 0, 100);
-                lv_anim_set_time(&a, 200);
+                lv_anim_set_time(&a, 280);
                 lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
                 lv_anim_set_exec_cb(&a, [](void * obj, int32_t progress) {
                   const int SLOT_N = 5;
@@ -239,7 +239,7 @@ script:
                 lv_anim_init(&a);
                 lv_anim_set_var(&a, nullptr);
                 lv_anim_set_values(&a, 0, 100);
-                lv_anim_set_time(&a, 200);
+                lv_anim_set_time(&a, 280);
                 lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
                 lv_anim_set_exec_cb(&a, [](void * obj, int32_t progress) {
                   const int SLOT_N = 5;
@@ -507,8 +507,10 @@ script:
 
             lv_obj_set_pos(slots[slot], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (slot == 2 ? 56.0f : 40.0f) * scale));
             lv_obj_set_style_text_font(title_lbls[slot], slot == 2 ? center_font : item_font, LV_PART_MAIN);
-            lv_obj_set_x(title_lbls[slot], (int)((slot == 2 ? 108 : 76) * scale));
-            lv_obj_set_width(title_lbls[slot], (int)(screen_w * 0.55f));
+            int title_x = (int)((slot == 2 ? 108 : 76) * scale);
+            lv_obj_set_x(title_lbls[slot], title_x);
+            lv_obj_set_width(title_lbls[slot], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
+            lv_label_set_long_mode(title_lbls[slot], LV_LABEL_LONG_DOT);
             lv_img_set_zoom(icons[slot], (uint16_t)(256 * scale));
 
             // Update accent bar position to follow center slot

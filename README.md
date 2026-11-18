@@ -37,5 +37,5 @@ The following entity types should be supported:
 - Todo: A page showing a todo list entity
   - Rotate the dial to highlight a todo-item, and mark it as done/not done on single press
 - Energy: A page showing the current energy price & usage
-
+- Alarm: A page showing an alarm entity and its current state
 
