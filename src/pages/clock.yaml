@@ -62,8 +62,8 @@ color:
     hex: "D8C16A"    # restrained wind accent
   - id: col_divider
     hex: "202A3C"
-
-globals:  
+    
+globals:
   - id: in_clock
     type: bool
     initial_value: 'true'
@@ -73,18 +73,57 @@ globals:
   - id: next_hour_temperature
     type: float
     initial_value: '0'
+
   - id: next_hour_condition
     type: std::string
-    initial_value: '"Waiting for forecast"'
+    initial_value: '"Loading forecast"'
+
+  - id: next_hour_datetime
+    type: std::string
+    initial_value: '""'
+
+  - id: next_hour_templow
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_humidity
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_pressure
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_wind_speed
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_wind_bearing
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_precipitation
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_precipitation_probability
+    type: float
+    initial_value: 'NAN'
+
+  - id: next_hour_cloud_coverage
+    type: float
+    initial_value: 'NAN'
 
 script:
   - id: open_clock
     then:
       - globals.set: {id: in_clock, value: 'true'}
+      - globals.set: {id: in_weather, value: 'false'}
       - globals.set: {id: in_menu, value: 'false'}
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_LEFT
+      - script.execute: refresh_clock_timer
 
   - id: close_clock
     then:
@@ -100,26 +139,68 @@ script:
             auto t = id(ha_time).now();
             snprintf(buf, sizeof(buf), "%02d:%02d", t.hour, t.minute);
             return buf;
+
       - lvgl.label.update:
           id: lbl_date
           text: !lambda |-
             static char buf[20];
             auto t = id(ha_time).now();
-            const char* days[] = {"Zondag","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag"};
-            const char* day = (t.day_of_week >= 1 && t.day_of_week <= 7) ? days[t.day_of_week - 1] : "---";
-            sprintf(buf, "%s  %02d/%02d", day, t.day_of_month, t.month);
+            const char* days[] = {
+              "Zondag", "Maandag", "Dinsdag", "Woensdag",
+              "Donderdag", "Vrijdag", "Zaterdag"
+            };
+            const char* day =
+              (t.day_of_week >= 1 && t.day_of_week <= 7)
+              ? days[t.day_of_week - 1]
+              : "---";
+            snprintf(buf, sizeof(buf), "%s  %02d/%02d",
+                     day, t.day_of_month, t.month);
             return buf;
+
       - lvgl.arc.update:
           id: arc_minute
           value: !lambda "return id(ha_time).now().minute;"
+
+  - id: refresh_clock_timer
+    then:
+      - lvgl.label.update:
+          id: lbl_clock_timer
+          text: !lambda |-
+            int seconds = id(timer_running)
+              ? id(timer_remaining)
+              : id(timer_set_h) * 3600 + id(timer_set_m) * 60 + id(timer_set_s);
+            const char* state = id(timer_done)
+              ? "DONE"
+              : id(timer_running) ? "RUN" : "READY";
+            static char buf[24];
+            if (id(timer_done)) {
+              snprintf(buf, sizeof(buf), "%s", state);
+            } else if (seconds >= 3600) {
+              snprintf(buf, sizeof(buf), "%s %02d:%02d:%02d", state,
+                       seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+            } else {
+              snprintf(buf, sizeof(buf), "%s %02d:%02d", state,
+                       seconds / 60, seconds % 60);
+            }
+            return buf;
 
   - id: open_forecast
     then:
       - globals.set: {id: in_weather, value: 'true'}
       - globals.set: {id: in_clock, value: 'false'}
+      - globals.set: {id: in_menu, value: 'false'}
       - lvgl.page.show:
           id: page_weather
           animation: MOVE_TOP
+      - lvgl.label.update:
+          id: lbl_weather
+          text: "Loading..."
+      - lvgl.label.update:
+          id: lbl_weather_condition
+          text: "Fetching forecast"
+      - lvgl.label.update:
+          id: lbl_weather_icon
+          text: "\U000F0590"
       - script.execute: get_forecast
 
   - id: close_forecast
@@ -140,13 +221,200 @@ script:
           capture_response: true
           on_success:
             - lambda: |-
-                JsonObjectConst next_hour = response["response"]["${weather_entity}"]["forecast"][0];
-                id(next_hour_temperature) = next_hour["temperature"] | 0.0f;
-                id(next_hour_condition) = next_hour["condition"] | "Forecast unavailable";
-                static char forecast_temp[12];
-                snprintf(forecast_temp, sizeof(forecast_temp), "%.0f\xc2\xb0", id(next_hour_temperature));
-                lv_label_set_text(id(lbl_weather), forecast_temp);
-                lv_label_set_text(id(lbl_weather_condition), id(next_hour_condition).c_str());
+                JsonObjectConst weather_response =
+                    response["response"]["${weather_entity}"];
+                JsonArrayConst forecast = weather_response["forecast"];
+
+                if (forecast.isNull() || forecast.size() == 0) {
+                  id(next_hour_condition) = "Forecast unavailable";
+                  lv_label_set_text(
+                    id(lbl_weather_condition),
+                    id(next_hour_condition).c_str()
+                  );
+                  lv_label_set_text(id(lbl_weather_icon), "\U000F0590");
+                  lv_label_set_text(id(lbl_weather), "--");
+                  lv_label_set_text(id(lbl_forecast_datetime), "--");
+                  lv_label_set_text(id(lbl_forecast_low), "--");
+                  lv_label_set_text(id(lbl_forecast_humidity), "--");
+                  lv_label_set_text(id(lbl_forecast_pressure), "--");
+                  lv_label_set_text(id(lbl_forecast_wind), "--");
+                  lv_label_set_text(id(lbl_forecast_bearing), "--");
+                  lv_label_set_text(id(lbl_forecast_rain), "--");
+                  lv_label_set_text(id(lbl_forecast_rainchance), "--");
+                  lv_label_set_text(id(lbl_forecast_cloud), "--");
+                  return;
+                }
+
+                JsonObjectConst next_hour = forecast[0];
+
+                id(next_hour_temperature) =
+                  next_hour["temperature"] | 0.0f;
+                id(next_hour_templow) =
+                  next_hour["templow"] | NAN;
+                id(next_hour_humidity) =
+                  next_hour["humidity"] | NAN;
+                id(next_hour_pressure) =
+                  next_hour["pressure"] | NAN;
+                id(next_hour_wind_speed) =
+                  next_hour["wind_speed"] | NAN;
+                id(next_hour_wind_bearing) =
+                  next_hour["wind_bearing"] | NAN;
+                id(next_hour_precipitation) =
+                  next_hour["precipitation"] | NAN;
+                id(next_hour_precipitation_probability) =
+                  next_hour["precipitation_probability"] | NAN;
+                id(next_hour_cloud_coverage) =
+                  next_hour["cloud_coverage"] | NAN;
+                id(next_hour_datetime) =
+                  next_hour["datetime"] | std::string("");
+                id(next_hour_condition) =
+                  next_hour["condition"] | std::string("unknown");
+
+                static char buf_temperature[12];
+                snprintf(buf_temperature, sizeof(buf_temperature),
+                         "%.0f\xc2\xb0", id(next_hour_temperature));
+                lv_label_set_text(id(lbl_weather), buf_temperature);
+
+                lv_label_set_text(
+                  id(lbl_weather_condition),
+                  id(next_hour_condition).c_str()
+                );
+
+                static char buf_datetime[24];
+                if (!id(next_hour_datetime).empty()) {
+                  snprintf(buf_datetime, sizeof(buf_datetime),
+                           "%.16s", id(next_hour_datetime).c_str());
+                } else {
+                  snprintf(buf_datetime, sizeof(buf_datetime), "--");
+                }
+                lv_label_set_text(id(lbl_forecast_datetime), buf_datetime);
+
+                static char buf_low[12];
+                if (isnan(id(next_hour_templow))) {
+                  snprintf(buf_low, sizeof(buf_low), "--");
+                } else {
+                  snprintf(buf_low, sizeof(buf_low),
+                           "%.0f\xc2\xb0", id(next_hour_templow));
+                }
+                lv_label_set_text(id(lbl_forecast_low), buf_low);
+
+                static char buf_humidity[12];
+                if (isnan(id(next_hour_humidity))) {
+                  snprintf(buf_humidity, sizeof(buf_humidity), "--");
+                } else {
+                  snprintf(buf_humidity, sizeof(buf_humidity),
+                           "%.0f%%", id(next_hour_humidity));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_humidity),
+                  buf_humidity
+                );
+
+                static char buf_pressure[16];
+                if (isnan(id(next_hour_pressure))) {
+                  snprintf(buf_pressure, sizeof(buf_pressure), "--");
+                } else {
+                  snprintf(buf_pressure, sizeof(buf_pressure),
+                           "%.0fhPa", id(next_hour_pressure));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_pressure),
+                  buf_pressure
+                );
+
+                static char buf_wind[16];
+                if (isnan(id(next_hour_wind_speed))) {
+                  snprintf(buf_wind, sizeof(buf_wind), "--");
+                } else {
+                  snprintf(buf_wind, sizeof(buf_wind),
+                           "%.0f km/h", id(next_hour_wind_speed));
+                }
+                lv_label_set_text(id(lbl_forecast_wind), buf_wind);
+
+                static char buf_bearing[12];
+                if (isnan(id(next_hour_wind_bearing))) {
+                  snprintf(buf_bearing, sizeof(buf_bearing), "--");
+                } else {
+                  snprintf(buf_bearing, sizeof(buf_bearing),
+                           "%.0f\xc2\xb0", id(next_hour_wind_bearing));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_bearing),
+                  buf_bearing
+                );
+
+                static char buf_rain[12];
+                if (isnan(id(next_hour_precipitation))) {
+                  snprintf(buf_rain, sizeof(buf_rain), "--");
+                } else {
+                  snprintf(buf_rain, sizeof(buf_rain),
+                           "%.1fmm", id(next_hour_precipitation));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_rain),
+                  buf_rain
+                );
+
+                static char buf_rainchance[12];
+                if (isnan(id(next_hour_precipitation_probability))) {
+                  snprintf(buf_rainchance, sizeof(buf_rainchance), "--");
+                } else {
+                  snprintf(buf_rainchance, sizeof(buf_rainchance),
+                           "%.0f%%",
+                           id(next_hour_precipitation_probability));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_rainchance),
+                  buf_rainchance
+                );
+
+                static char buf_cloud[12];
+                if (isnan(id(next_hour_cloud_coverage))) {
+                  snprintf(buf_cloud, sizeof(buf_cloud), "--");
+                } else {
+                  snprintf(buf_cloud, sizeof(buf_cloud),
+                           "%.0f%%", id(next_hour_cloud_coverage));
+                }
+                lv_label_set_text(
+                  id(lbl_forecast_cloud),
+                  buf_cloud
+                );
+
+                const char *icon = "\U000F0590";  // cloudy fallback
+
+                if (id(next_hour_condition) == "clear-night") {
+                  icon = "\U000F0594";
+                } else if (id(next_hour_condition) == "cloudy") {
+                  icon = "\U000F0590";
+                } else if (id(next_hour_condition) == "exceptional") {
+                  icon = "\U000F0026";
+                } else if (id(next_hour_condition) == "fog") {
+                  icon = "\U000F0591";
+                } else if (id(next_hour_condition) == "hail") {
+                  icon = "\U000F0592";
+                } else if (id(next_hour_condition) == "lightning") {
+                  icon = "\U000F0593";
+                } else if (id(next_hour_condition) == "lightning-rainy") {
+                  icon = "\U000F067E";
+                } else if (id(next_hour_condition) == "partlycloudy") {
+                  icon = "\U000F0595";
+                } else if (id(next_hour_condition) == "pouring") {
+                  icon = "\U000F0596";
+                } else if (id(next_hour_condition) == "rainy") {
+                  icon = "\U000F0597";
+                } else if (id(next_hour_condition) == "snowy") {
+                  icon = "\U000F0598";
+                } else if (id(next_hour_condition) == "snowy-rainy") {
+                  icon = "\U000F0599";
+                } else if (id(next_hour_condition) == "sunny") {
+                  icon = "\U000F059D";
+                } else if (id(next_hour_condition) == "windy") {
+                  icon = "\U000F059E";
+                } else if (id(next_hour_condition) == "windy-variant") {
+                  icon = "\U000F059F";
+                }
+
+                lv_label_set_text(id(lbl_weather_icon), icon);
 
 time:
   - platform: homeassistant
@@ -160,75 +428,12 @@ time:
       then:
         - script.execute: update_clock
 
-text_sensor:
-  - platform: homeassistant
-    id: ha_wthr
-    entity_id: ${weather_entity}
-    attribute: state.translated
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_wthr
-            text: !lambda |-
-              return x.c_str();
-
 sensor:
   - platform: homeassistant
     id: ha_temperature
     entity_id: ${weather_entity}
     attribute: temperature
     internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_temp
-            text: !lambda |-
-              static char buf[8];
-              sprintf(buf, "%.0f\xc2\xb0", x);
-              return buf;
-
-  - platform: homeassistant
-    id: ha_humidity
-    entity_id: ${weather_entity}
-    attribute: humidity
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_humidity
-            text: !lambda |-
-              static char buf[8];
-              sprintf(buf, "%.0f%%", x);
-              return buf;
-
-  - platform: homeassistant
-    id: ha_pressure
-    entity_id: ${weather_entity}
-    attribute: pressure
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_pressure
-            text: !lambda |-
-              static char buf[12];
-              sprintf(buf, "%.0fhPa", x);
-              return buf;
-
-  - platform: homeassistant
-    id: ha_wind
-    entity_id: ${weather_entity}
-    attribute: wind_speed
-    internal: true
-    on_value:
-      then:
-        - lvgl.label.update:
-            id: lbl_cloud
-            text: !lambda |-
-              static char buf[12];
-              sprintf(buf, "%.0fkm/h", x);
-              return buf;
 
 lvgl:
   pages:
@@ -239,10 +444,12 @@ lvgl:
       on_load:
         - lambda: |-
             int screen_width = lv_obj_get_width(lv_scr_act());
-            lv_obj_set_style_text_font(id(lbl_clock),
-              screen_width >= 400 ? id(font_clock) : id(font_val), 0);
+            lv_obj_set_style_text_font(
+              id(lbl_clock),
+              screen_width >= 400 ? id(font_clock) : id(font_val),
+              0
+            );
       widgets:
-
         - arc:
             align: CENTER
             width: 95%
@@ -312,55 +519,73 @@ lvgl:
 
         - label:
             align: CENTER
-            x: -24%
-            y: 5%
+            y: 13%
             text_font: font_lbl
-            text_color: col_text_temp
-            text: "TEMP"
-        - label:
-            align: CENTER
-            x: 0
-            y: 5%
-            text_font: font_lbl
-            text_color: col_text_hum
-            text: "HUM"
-        - label:
-            align: CENTER
-            x: 24%
-            y: 5%
-            text_font: font_lbl
-            text_color: col_text_aqi
-            text: "WTHR"
+            text_color: col_text_lbl
+            text: "TIMER"
 
         - label:
-            id: lbl_temp
+            id: lbl_clock_timer
             align: CENTER
-            x: -24%
-            y: 13%
-            text_font: font_val
+            y: 23%
+            width: 82%
+            text_font: font_val_s
+            text_color: col_ring_progress
+            text_align: CENTER
+            text: "READY 05:00"
+
+    - id: page_weather
+      bg_color: col_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 4%
+            text: "HOURLY FORECAST"
+            text_font: font_lbl
+            text_color: col_text_lbl
+
+        - label:
+            id: lbl_forecast_datetime
+            align: TOP_MID
+            y: 10%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "--"
+
+        - label:
+            id: lbl_weather_icon
+            align: CENTER
+            x: -30%
+            y: -20%
+            text_font: font_clock
+            text_color: col_text_wind
+            text: "\U000F0590"
+
+        - label:
+            id: lbl_weather
+            align: CENTER
+            x: 14%
+            y: -20%
+            text_font: font_clock
             text_color: col_text_temp
-            text: "--"
+            text: "--°"
+
         - label:
-            id: lbl_humidity
+            id: lbl_weather_condition
             align: CENTER
-            x: 0
-            y: 13%
-            text_font: font_val
-            text_color: col_text_hum
-            text: "--"
-        - label:
-            id: lbl_wthr
-            align: CENTER
-            x: 24%
-            y: 13%
-            text_font: font_val
-            text_color: col_text_aqi
-            text: "--"
+            y: -6%
+            width: 82%
+            text_font: font_val_s
+            text_color: col_text_wind
+            text_align: CENTER
+            text: "Loading forecast"
 
         - obj:
             align: CENTER
-            y: 18%
-            width: 75%
+            y: 3%
+            width: 86%
             height: 1
             bg_color: col_divider
             border_width: 0
@@ -369,61 +594,146 @@ lvgl:
 
         - label:
             align: CENTER
-            x: -12.5%
-            y: 25%
-            text_font: font_lbl
-            text_color: col_text_pres
-            text: "PRESSURE"
+            x: -31%
+            y: 10%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "LOW"
+
+        - label:
+            id: lbl_forecast_low
+            align: CENTER
+            x: -31%
+            y: 17%
+            text_font: font_val_s
+            text_color: col_text_temp
+            text: "--"
+
         - label:
             align: CENTER
-            x: 16.7%
+            x: 0
+            y: 10%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "HUMIDITY"
+
+        - label:
+            id: lbl_forecast_humidity
+            align: CENTER
+            x: 0
+            y: 17%
+            text_font: font_val_s
+            text_color: col_text_hum
+            text: "--"
+
+        - label:
+            align: CENTER
+            x: 31%
+            y: 10%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "PRESSURE"
+
+        - label:
+            id: lbl_forecast_pressure
+            align: CENTER
+            x: 31%
+            y: 17%
+            text_font: font_val_s
+            text_color: col_text_pres
+            text: "--"
+
+        - obj:
+            align: CENTER
             y: 25%
-            text_font: font_lbl
-            text_color: col_text_wind
+            width: 86%
+            height: 1
+            bg_color: col_divider
+            border_width: 0
+            clickable: false
+            scrollbar_mode: "OFF"
+
+        - label:
+            align: CENTER
+            x: -28%
+            y: 32%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
             text: "WIND"
 
         - label:
-            id: lbl_pressure
+            id: lbl_forecast_wind
             align: CENTER
-            x: -12.5%
-            y: 31.7%
-            text_font: font_val_s
-            text_color: col_text_pres
-            text: "--"
-        - label:
-            id: lbl_cloud
-            align: CENTER
-            x: 16.7%
-            y: 31.7%
+            x: -28%
+            y: 39%
             text_font: font_val_s
             text_color: col_text_wind
             text: "--"
-  
-    - id: page_weather
-      bg_color: col_bg
-      bg_opa: COVER
-      scrollbar_mode: "OFF"
-      widgets:
+
         - label:
             align: CENTER
-            y: -20%
-            text: "NEXT HOUR"
-            text_font: font_lbl
+            x: 0
+            y: 32%
+            text_font: font_lbl_s
             text_color: col_text_lbl
+            text: "RAIN"
+
         - label:
-            id: lbl_weather
+            id: lbl_forecast_rain
             align: CENTER
             x: 0
-            y: -4%
-            text_font: font_clock
-            text_color: col_text_temp
-            text: "--°"
+            y: 39%
+            text_font: font_val_s
+            text_color: col_text_hum
+            text: "--"
+
         - label:
-            id: lbl_weather_condition
             align: CENTER
-            x: 0
-            y: 12%
-            width: 82%
+            x: 28%
+            y: 32%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "RAIN %"
+
+        - label:
+            id: lbl_forecast_rainchance
+            align: CENTER
+            x: 28%
+            y: 39%
+            text_font: font_val_s
+            text_color: col_text_hum
+            text: "--"
+
+        - label:
+            align: CENTER
+            x: -25%
+            y: 47%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "DIRECTION"
+
+        - label:
+            id: lbl_forecast_bearing
+            align: CENTER
+            x: -25%
+            y: 54%
             text_font: font_val_s
             text_color: col_text_wind
-            text: "Forecast unavailable"
+            text: "--"
+
+        - label:
+            align: CENTER
+            x: 25%
+            y: 47%
+            text_font: font_lbl_s
+            text_color: col_text_lbl
+            text: "CLOUD"
+
+        - label:
+            id: lbl_forecast_cloud
+            align: CENTER
+            x: 25%
+            y: 54%
+            text_font: font_val_s
+            text_color: col_text_aqi
+            text: "--"

@@ -20,10 +20,11 @@ The following entity types should be supported:
 - Lights: A page showing a lamp or light group showing the current state (off/on), brightness (if supported) and color (if supported).
   - Rotate the dial to change brightness shown as an arc on the display
   - Single press to turn the lamp on/off shown by a lamp icon
-- Clock: Default page showing the current time and weather conditions/forecast
-  - Rotate the dial to select a time duration shown as an arc on the display
-  - Single press to start/stop the timer
+- Clock: Default page showing the current time and timer state
+  - Single press to start/stop the timer shown on the clock face
+  - Open the Timer menu page to adjust the duration
   - Play a sound (if supported) and show a flashing icon when the timer ends
+- Weather: Separate menu page showing the hourly/daily forecast
 - Climate: A page showing a climate entity (radiator dial/aiconditioner)
   - Rotate the dial to change the desired temperature setting shown as an arc on the display
   - Single press to turn the climate device on/off shown by an icon

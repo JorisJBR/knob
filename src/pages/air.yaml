@@ -223,6 +223,7 @@ script:
     then:
       - globals.set: {id: in_air, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
+      - globals.set: {id: air_mode, value: '0'} 
       - script.execute: refresh_air
       - lvgl.page.show:
           id: page_air
@@ -256,7 +257,7 @@ script:
   - id: air_temp_commit
     mode: restart
     then:
-      - delay: 150ms
+      - delay: 750ms
       - homeassistant.service:
           service: climate.set_temperature
           data:
@@ -295,7 +296,7 @@ script:
   - id: air_fan_commit
     mode: restart
     then:
-      - delay: 150ms
+      - delay: 750ms
       - if:
           condition:
             lambda: 'return !id(air_fan_modes).empty();'
@@ -319,7 +320,7 @@ script:
   - id: air_swing_commit
     mode: restart
     then:
-      - delay: 150ms
+      - delay: 750ms
       - if:
           condition:
             lambda: 'return !id(air_swing_modes).empty();'
@@ -357,6 +358,15 @@ script:
           lv_label_set_text(id(lbl_air_info), sbuf);
 
           std::string hvac_mode = id(ha_air_hvac_mode).state;
+          lv_color_t arc_color = lv_color_hex(0x2196F3);  // cooling / fallback
+          if (hvac_mode == "heat") {
+            arc_color = lv_color_hex(0xFF9800);           // heating
+          } else if (hvac_mode == "auto") {
+            arc_color = lv_color_hex(0x4CAF50);           // auto
+          }
+          lv_obj_set_style_arc_color(id(air_set_arc), arc_color, LV_PART_INDICATOR);
+          lv_obj_set_style_bg_color(id(air_set_arc), arc_color, LV_PART_KNOB);
+
           static char hbuf[40];
           snprintf(hbuf, sizeof(hbuf), "Mode %s", hvac_mode.c_str());
           lv_label_set_text(id(lbl_air_hvac_mode), hbuf);
