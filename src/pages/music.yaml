@@ -41,13 +41,6 @@ color:
   - id: col_music_dark
     hex: "1A1040"
 
-image:
-  - file: src/assets/images/place_holder.png
-    id: place_holder
-    type: RGB565
-    transparency: alpha_channel
-    resize: 320x320
-
 text_sensor:
   - platform: homeassistant
     id: media_player_fname
@@ -311,7 +304,6 @@ lvgl:
             int screen_width = lv_obj_get_width(lv_scr_act());
             lv_obj_set_style_text_font(id(lbl_music_title),
               screen_width >= 400 ? id(font_music_title) : id(font_val), 0);
-            lv_img_set_zoom(id(img_music_cover), (uint16_t)(screen_width * 0.4f));
       widgets:
         - obj:
             align: TOP_LEFT
@@ -368,11 +360,12 @@ lvgl:
                   clickable: false
                   scrollbar_mode: "OFF"
                   widgets:
-                    - image:
-                        id: img_music_cover
-                        src: place_holder
-                        x: 8
-                        y: 6
+                    - label:
+                        id: lbl_music_cover
+                        align: CENTER
+                        text: ${icon_music}
+                        text_font: media_player_icons
+                        text_color: col_music_play_btn
               - label:
                   id: lbl_music_title
                   align: CENTER

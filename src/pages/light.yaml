@@ -1,22 +1,3 @@
-image:
-  - file: src/assets/images/palette.png
-    id: light_img_palette
-    type: RGB565
-    transparency: alpha_channel
-    resize: 44x44
-
-  - file: src/assets/images/light.png
-    id: light_img_dengguang
-    type: RGB565
-    transparency: alpha_channel
-    resize: 40x40
-
-  - file: src/assets/images/gradient.png
-    id: light_img_gradient
-    type: RGB565
-    transparency: alpha_channel
-    resize: 44x44
-
 font:
   - file:
       family: DM+Sans
@@ -173,6 +154,7 @@ script:
             : lv_color_hex(0x262626);
           lv_obj_set_style_border_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
           lv_obj_set_style_shadow_color(id(btn_dengguang), col, LV_STATE_DEFAULT);
+          lv_label_set_text(id(lbl_light_toggle), id(light_on) ? "\U000F06E8" : "\U000F0E4F");
       - if:
           condition:
             lambda: 'return id(light_on);'
@@ -511,10 +493,11 @@ lvgl:
                   on_click:
                     - script.execute: open_colorpicker
                   widgets:
-                    - image:
-                        src: light_img_palette
+                    - label:
+                        text: "\U000F03D8"
+                        text_font: font_mdi_icons
+                        text_color: col_light_orange
                         align: CENTER
-                        clickable: false
 
               - obj:
                   id: btn_rainbow
@@ -539,10 +522,11 @@ lvgl:
                   on_click:
                     - script.execute: cycle_gradient_effect
                   widgets:
-                    - image:
-                        src: light_img_gradient
+                    - label:
+                        text: "\U000F174A"
+                        text_font: font_mdi_icons
+                        text_color: col_light_orange
                         align: CENTER
-                        clickable: false
               - obj:
                   id: btn_dengguang
                   align: CENTER
@@ -566,10 +550,12 @@ lvgl:
                   on_click:
                     - script.execute: toggle_light_onoff
                   widgets:
-                    - image:
-                        src: light_img_dengguang
+                    - label:
+                        id: lbl_light_toggle
+                        text: "\U000F0E4F"
+                        text_font: font_mdi_icons
+                        text_color: col_light_orange
                         align: CENTER
-                        clickable: false
 
     - id: page_colorpicker
       bg_color: col_light_bg
