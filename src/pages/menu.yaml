@@ -17,6 +17,14 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
+  - file:
+      type: web
+      url: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
+    id: font_mdi_icons
+    size: 48
+    bpp: 4
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0595\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
+
 color:
   - id: col_menu_bg
     hex: "000000"
@@ -465,7 +473,7 @@ script:
             lv_label_set_long_mode(title_lbls[slot], slot == 2
               ? LV_LABEL_LONG_SCROLL_CIRCULAR : LV_LABEL_LONG_DOT);
             if (slot == 2) lv_obj_set_style_anim_time(title_lbls[slot], 9000, LV_PART_MAIN);
-            lv_obj_set_style_text_font(icon_labels[slot], &lv_font_montserrat_48, LV_PART_MAIN);
+            lv_obj_set_style_text_font(icon_labels[slot], id(font_mdi_icons)->get_lv_font(), LV_PART_MAIN);
             lv_label_set_text(icon_labels[slot], ICONS[di]);
             lv_obj_set_style_text_color(icon_labels[slot],
               slot == 2 ? lv_color_hex(ACCENT_COLORS[di]) : lv_color_hex(0xFFFFFF), LV_PART_MAIN);
@@ -589,8 +597,8 @@ lvgl:
                               id: slot_far_up_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F00F3"
-                              text_font: montserrat_48
+                              text: "\U000F051B"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_far_up_lbl
@@ -617,8 +625,8 @@ lvgl:
                               id: slot_near_up_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F000B"
-                              text_font: montserrat_48
+                              text: "\U000F0756"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_near_up_lbl
@@ -661,8 +669,8 @@ lvgl:
                               id: slot_center_icon
                               align: LEFT_MID
                               x: 28
-                              text: "\U000F0043"
-                              text_font: montserrat_48
+                              text: "\U000F06E8"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_center_lbl
@@ -699,8 +707,8 @@ lvgl:
                               id: slot_near_dn_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F0013"
-                              text_font: montserrat_48
+                              text: "\U000F001B"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_near_dn_lbl
@@ -727,8 +735,8 @@ lvgl:
                               id: slot_far_dn_icon
                               align: LEFT_MID
                               x: 2
-                              text: "\U000F0001"
-                              text_font: montserrat_48
+                              text: "\U000F075A"
+                              text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
                               id: slot_far_dn_lbl
@@ -754,8 +762,9 @@ lvgl:
                   scrollbar_mode: "OFF"
                   widgets:
                     - label:
-                        text: "\U000F0015"
-                        text_font: montserrat_48
+                        id: menu_home_icon
+                        text: "\U000F02DC"
+                        text_font: font_mdi_icons
                         text_color: col_menu_accent
                         align: CENTER
 

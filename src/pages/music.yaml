@@ -1,11 +1,11 @@
 ---
 substitutions:
-  icon_play: "\U000F004B"
-  icon_pause: "\U000F004C"
-  icon_forward: "\U000F0051"
-  icon_backward: "\U000F0048"
-  icon_music: "\U000F0001"
-  icon_volume: "\U000F0028"
+  icon_play: "\U0000F04B"
+  icon_pause: "\U0000F04C"
+  icon_forward: "\U0000F051"
+  icon_backward: "\U0000F048"
+  icon_music: "\U000F075A"
+  icon_volume: "\U0000F028"
 
 font:
   - file:
@@ -354,7 +354,7 @@ lvgl:
                         id: lbl_music_cover
                         align: CENTER
                         text: ${icon_music}
-                        text_font: montserrat_48
+                        text_font: font_mdi_icons
                         text_color: col_music_play_btn
               - label:
                   id: lbl_music_title

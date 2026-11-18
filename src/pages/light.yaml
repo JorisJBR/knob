@@ -498,8 +498,8 @@ lvgl:
                     - script.execute: open_colorpicker
                   widgets:
                     - label:
-                        text: "\U000F0043"
-                        text_font: montserrat_48
+                        text: "\U000F03D8"
+                        text_font: font_mdi_icons
                         text_color: col_light_orange
                         align: CENTER
 
@@ -527,8 +527,8 @@ lvgl:
                     - script.execute: cycle_gradient_effect
                   widgets:
                     - label:
-                        text: "\U000F0074"
-                        text_font: montserrat_48
+                        text: "\U000F174A"
+                        text_font: font_mdi_icons
                         text_color: col_light_orange
                         align: CENTER
               - obj:
@@ -556,8 +556,8 @@ lvgl:
                   widgets:
                     - label:
                         id: lbl_light_toggle
-                        text: "\U000F0011"
-                        text_font: montserrat_48
+                        text: "\U000F0E4F"
+                        text_font: font_mdi_icons
                         text_color: col_light_orange
                         align: CENTER
 

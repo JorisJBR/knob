@@ -650,8 +650,8 @@ lvgl:
                     - label:
                         id: lbl_air_fan_icon
                         align: CENTER
-                        text: "\U000F0021"
-                        text_font: montserrat_48
+                        text: "\U000F081D"
+                        text_font: font_mdi_icons
                         text_color: 0xFFFFFF
 
               - obj:
@@ -681,8 +681,8 @@ lvgl:
                     - label:
                         id: lbl_air_power_icon
                         align: CENTER
-                        text: "\U000F0011"
-                        text_font: montserrat_48
+                        text: "\U000F0425"
+                        text_font: font_mdi_icons
                         text_color: 0xFFFFFF
 
               - obj:
@@ -704,6 +704,6 @@ lvgl:
                     - label:
                         id: lbl_air_swing_icon
                         align: CENTER
-                        text: "\U000F0013"
-                        text_font: montserrat_48
+                        text: "\U000F001B"
+                        text_font: font_mdi_icons
                         text_color: 0xFFFFFF
