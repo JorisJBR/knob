@@ -10,6 +10,7 @@ packages:
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
+  asset_dir: src/assets
   timezone: Europe/Amsterdam
   weather_entity: weather.forecast_thuis
   climate_entity: climate.airco_beneden
@@ -389,3 +390,32 @@ binary_sensor:
         then:
           # - lvgl.resume:
           - script.execute: single_click
+
+select:
+  - platform: template
+    name: Active Page
+    id: active_page
+    icon: mdi:page-next
+    optimistic: true
+    initial_option: Clock
+    options:
+      - Menu
+      - Clock
+      - Light
+      - Color picker
+      - Climate
+      - Music
+      - Timer
+      - To-do
+      - Weather
+    set_action:
+      - lambda: |-
+          if (x == "Menu") id(open_menu).execute();
+          else if (x == "Clock") id(open_clock).execute();
+          else if (x == "Light") id(open_light).execute();
+          else if (x == "Color picker") id(open_colorpicker).execute();
+          else if (x == "Climate") id(open_air).execute();
+          else if (x == "Music") id(open_music).execute();
+          else if (x == "Timer") id(open_timer).execute();
+          else if (x == "To-do") id(open_todo).execute();
+          else if (x == "Weather") id(open_forecast).execute();

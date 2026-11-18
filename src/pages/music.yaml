@@ -17,7 +17,7 @@ font:
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
 
-  - file: src/assets/fonts/media_player_icons.ttf
+  - file: ${asset_dir}/fonts/media_player_icons.ttf
     id: media_player_icons
     size: 96
     bpp: 4
@@ -175,6 +175,7 @@ script:
       - globals.set: {id: in_music, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - script.execute: refresh_music_volume
+      - lambda: 'id(active_page).publish_state("Music");'
       - lvgl.page.show:
           id: page_music
           animation: MOVE_LEFT
@@ -182,6 +183,7 @@ script:
   - id: close_music
     then:
       - globals.set: {id: in_music, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_RIGHT

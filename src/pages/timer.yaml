@@ -105,6 +105,7 @@ script:
       - globals.set: {id: in_menu,   value: 'false'}
       - script.execute: refresh_timer
       - script.execute: refresh_clock_timer
+      - lambda: 'id(active_page).publish_state("Timer");'
       - lvgl.page.show:
           id: page_timer
           animation: MOVE_LEFT

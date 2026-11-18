@@ -225,6 +225,7 @@ script:
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: air_mode, value: '0'} 
       - script.execute: refresh_air
+      - lambda: 'id(active_page).publish_state("Climate");'
       - lvgl.page.show:
           id: page_air
           animation: MOVE_LEFT

@@ -89,6 +89,7 @@ script:
       - globals.set: {id: in_todo, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: todo_selected, value: '0'}
+      - lambda: 'id(active_page).publish_state("To-do");'
       - lvgl.page.show:
           id: page_todo
           animation: MOVE_LEFT

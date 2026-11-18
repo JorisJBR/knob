@@ -17,7 +17,7 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
-  - file: src/assets/fonts/materialdesignicons-webfont.ttf
+  - file: ${asset_dir}/fonts/materialdesignicons-webfont.ttf
     id: font_mdi_icons
     size: 48
     bpp: 4
@@ -57,6 +57,7 @@ script:
       - globals.set: {id: menu_sel, value: '6'}
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
+      - lambda: 'id(active_page).publish_state("Menu");'
       - lvgl.page.show:
           id: page_menu
           animation: MOVE_LEFT
@@ -66,6 +67,7 @@ script:
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: in_clock, value: 'true'}
       - globals.set: {id: in_weather, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_RIGHT

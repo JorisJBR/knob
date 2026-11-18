@@ -135,6 +135,7 @@ script:
       - globals.set: {id: in_light, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - script.execute: refresh_light_arc
+      - lambda: 'id(active_page).publish_state("Light");'
       - lvgl.page.show:
           id: page_light
           animation: MOVE_LEFT
@@ -181,6 +182,7 @@ script:
           id(light_gradient_mode) = -1;
       - globals.set: {id: in_light, value: 'false'}
       - globals.set: {id: in_colorpicker, value: 'true'}
+      - lambda: 'id(active_page).publish_state("Color picker");'
       - lvgl.page.show:
           id: page_colorpicker
           animation: MOVE_LEFT
@@ -190,6 +192,7 @@ script:
       - lambda: "id(light_color_h) = id(light_color_h_prev);"
       - globals.set: {id: in_colorpicker, value: 'false'}
       - globals.set: {id: in_light, value: 'true'}
+      - lambda: 'id(active_page).publish_state("Light");'
       - lvgl.page.show:
           id: page_light
           animation: MOVE_RIGHT
@@ -230,6 +233,7 @@ script:
       - lvgl.page.show:
           id: page_light
           animation: MOVE_RIGHT
+      - lambda: 'id(active_page).publish_state("Light");'
 
   - id: light_hue_up
     then:

@@ -91,6 +91,7 @@ script:
       - delay: 2500ms
       - lambda: "lv_obj_fade_out(id(loading_page), 400, 0);"
       - delay: 450ms
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show: page_clock
       - lvgl.widget.hide: loading_page
 
