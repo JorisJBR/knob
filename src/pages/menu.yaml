@@ -17,11 +17,13 @@ font:
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
 
-  - file: src/assets/fonts/materialdesignicons-webfont.ttf
+  - file:
+      type: web
+      url: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
     id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0595\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
 
 color:
   - id: col_menu_bg
@@ -54,9 +56,19 @@ globals:
 script:
   - id: open_menu
     then:
-      - globals.set: {id: menu_sel, value: '6'}
+      - lambda: |-
+          const std::string page = id(active_page).current_option().str();
+          if (page == "Menu") {
+          } else if (page == "Timer") id(menu_sel) = 0;
+          else if (page == "To-do") id(menu_sel) = 1;
+          else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
+          else if (page == "Climate") id(menu_sel) = 3;
+          else if (page == "Music") id(menu_sel) = 4;
+          else if (page == "Weather") id(menu_sel) = 5;
+          else id(menu_sel) = 6;
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
+      - lambda: 'id(active_page).publish_state("Menu");'
       - lvgl.page.show:
           id: page_menu
           animation: MOVE_LEFT
@@ -66,6 +78,7 @@ script:
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: in_clock, value: 'true'}
       - globals.set: {id: in_weather, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_RIGHT
@@ -368,9 +381,21 @@ script:
           char home_temperature[16];
           snprintf(ac_temperature, sizeof(ac_temperature), "%.1f", id(ha_air_target_temp).state);
           snprintf(home_temperature, sizeof(home_temperature), "%.1f", id(ha_temperature).state);
+          int todo_done_count = 0;
+          for (int completed : id(todo_item_completed)) {
+            if (completed) todo_done_count++;
+          }
+          std::string todo_summary;
+          if (!id(todo_has_fetched)) {
+            todo_summary = id(todo_fetch_error) ? "Tasks unavailable" : "Loading tasks";
+          } else {
+            int todo_open_count = id(todo_count) - todo_done_count;
+            todo_summary = std::to_string(todo_done_count) + " done / " +
+                           std::to_string(todo_open_count) + " open";
+          }
           std::string subtitles[7] = {
             "5 minutes",
-            std::to_string(id(todo_count)) + (id(todo_count) == 1 ? " task" : " tasks"),
+            todo_summary,
             std::to_string(id(light_brightness)) + " %",
             id(ha_air_hvac_mode).state + " - " + ac_temperature + "C",
             id(media_player_status).state + " - " + id(media_player_title).state,
@@ -758,6 +783,7 @@ lvgl:
                   scrollbar_mode: "OFF"
                   widgets:
                     - label:
+                        id: menu_home_icon
                         text: "\U000F02DC"
                         text_font: font_mdi_icons
                         text_color: col_menu_accent

@@ -58,6 +58,9 @@ globals:
   - id: todo_count
     type: int
     initial_value: '0'
+  - id: todo_has_fetched
+    type: bool
+    initial_value: 'false'
   - id: todo_fetching
     type: bool
     initial_value: 'false'
@@ -89,6 +92,7 @@ script:
       - globals.set: {id: in_todo, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - globals.set: {id: todo_selected, value: '0'}
+      - lambda: 'id(active_page).publish_state("To-do");'
       - lvgl.page.show:
           id: page_todo
           animation: MOVE_LEFT
@@ -141,6 +145,7 @@ script:
                 }
                 id(todo_fetching) = false;
                 id(todo_fetch_error) = !valid_response;
+                id(todo_has_fetched) = valid_response;
                 id(todo_updating) = false;
                 if (!valid_response) {
                   char response_summary[192];

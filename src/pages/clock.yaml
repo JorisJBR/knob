@@ -120,6 +120,7 @@ script:
       - globals.set: {id: in_clock, value: 'true'}
       - globals.set: {id: in_weather, value: 'false'}
       - globals.set: {id: in_menu, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_LEFT
@@ -189,6 +190,7 @@ script:
       - globals.set: {id: in_weather, value: 'true'}
       - globals.set: {id: in_clock, value: 'false'}
       - globals.set: {id: in_menu, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Weather");'
       - lvgl.page.show:
           id: page_weather
           animation: MOVE_TOP
@@ -210,6 +212,7 @@ script:
           animation: MOVE_TOP
       - globals.set: {id: in_weather, value: 'false'}
       - globals.set: {id: in_clock, value: 'true'}
+      - lambda: 'id(active_page).publish_state("Clock");'
 
   - id: get_forecast
     then:
@@ -559,7 +562,7 @@ lvgl:
             align: CENTER
             x: -30%
             y: -20%
-            text_font: font_clock
+            text_font: font_mdi_icons
             text_color: col_text_wind
             text: "\U000F0590"
 

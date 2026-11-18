@@ -91,6 +91,7 @@ script:
       - delay: 2500ms
       - lambda: "lv_obj_fade_out(id(loading_page), 400, 0);"
       - delay: 450ms
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show: page_clock
       - lvgl.widget.hide: loading_page
 
@@ -102,7 +103,18 @@ script:
             lv_label_set_text(id(lbl_status), "Connected!");
             lv_label_set_text(id(lbl_sub),    "Home Assistant");
             id(check_boot_status).execute();
+            id(prefetch_todo_items).execute();
           }
+
+  - id: prefetch_todo_items
+    mode: restart
+    then:
+      - delay: 2s
+      - if:
+          condition:
+            lambda: 'return id(ha_connected);'
+          then:
+            - script.execute: fetch_todo_items
 
   - id: double_click
     then:
@@ -159,64 +171,50 @@ script:
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: menu_confirm
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_timer) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: timer_toggle
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_light) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: toggle_light_onoff
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_music) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: play_toggle
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_todo) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: todo_toggle_selected
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_air) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: air_toggle_mode
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_clock) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: timer_toggle
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
       - if:
           condition:
             lambda: 'return id(in_weather) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: close_forecast
-            - delay: 250ms
-            - globals.set: {id: button_debounce, value: 'false'}
+      - delay: 250ms
+      - globals.set: {id: button_debounce, value: 'false'}
 
   - id: rotate_anticlockwise
     then:

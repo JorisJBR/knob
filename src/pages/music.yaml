@@ -1,11 +1,11 @@
 ---
 substitutions:
-  icon_play: "\uF000"
-  icon_pause: "\uF001"
-  icon_forward: "\uF002"
-  icon_backward: "\uF003"
-  icon_music: "\uF004"
-  icon_volume: "\uF005"
+  icon_play: "\U0000F04B"
+  icon_pause: "\U0000F04C"
+  icon_forward: "\U0000F051"
+  icon_backward: "\U0000F048"
+  icon_music: "\U000F075A"
+  icon_volume: "\U0000F028"
 
 font:
   - file:
@@ -16,18 +16,6 @@ font:
     size: 56
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
-
-  - file: src/assets/fonts/media_player_icons.ttf
-    id: media_player_icons
-    size: 96
-    bpp: 4
-    glyphs:
-    - ${icon_play}  # play-solid-full
-    - ${icon_pause}  # pause-solid-full
-    - ${icon_forward}  # forward-solid-full
-    - ${icon_backward}  # backward-solid-full
-    - ${icon_music}
-    - ${icon_volume}
 
 color:
   - id: col_music_bg
@@ -175,6 +163,7 @@ script:
       - globals.set: {id: in_music, value: 'true'}
       - globals.set: {id: in_menu, value: 'false'}
       - script.execute: refresh_music_volume
+      - lambda: 'id(active_page).publish_state("Music");'
       - lvgl.page.show:
           id: page_music
           animation: MOVE_LEFT
@@ -182,6 +171,7 @@ script:
   - id: close_music
     then:
       - globals.set: {id: in_music, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_RIGHT
@@ -364,7 +354,7 @@ lvgl:
                         id: lbl_music_cover
                         align: CENTER
                         text: ${icon_music}
-                        text_font: media_player_icons
+                        text_font: font_mdi_icons
                         text_color: col_music_play_btn
               - label:
                   id: lbl_music_title
@@ -382,7 +372,7 @@ lvgl:
                         lv_label_set_long_mode(id(lbl_music_title), LV_LABEL_LONG_SCROLL);
                         lv_label_set_recolor(id(lbl_music_title), true);
               - label:
-                  text_font: media_player_icons
+                  text_font: montserrat_48
                   text: ${icon_volume}
                   align: CENTER
                   x: -20%
@@ -416,7 +406,7 @@ lvgl:
                         lv_group_remove_obj(id(prev_btn));
                   widgets:
                     - label:
-                        text_font: media_player_icons
+                        text_font: montserrat_48
                         text: ${icon_backward}
                         text_color: 0xFFFFFF
                         align: CENTER
@@ -442,7 +432,7 @@ lvgl:
                   widgets:
                     - label:
                         id: play_label
-                        text_font: media_player_icons
+                        text_font: montserrat_48
                         text: ${icon_play}
                         text_color: 0xFFFFFF
                         align: CENTER
@@ -466,7 +456,7 @@ lvgl:
                         lv_group_remove_obj(next_btn);
                   widgets:
                     - label:
-                        text_font: media_player_icons
+                        text_font: montserrat_48
                         text: ${icon_forward}
                         text_color: 0xFFFFFF
                         align: CENTER

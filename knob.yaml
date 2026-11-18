@@ -389,3 +389,42 @@ binary_sensor:
         then:
           # - lvgl.resume:
           - script.execute: single_click
+
+select:
+  - platform: template
+    name: Active Page
+    id: active_page
+    icon: mdi:page-next
+    optimistic: true
+    initial_option: Clock
+    options:
+      - Menu
+      - Clock
+      - Light
+      - Color picker
+      - Climate
+      - Music
+      - Timer
+      - To-do
+      - Weather
+    set_action:
+      - lambda: |-
+          if (x == "Menu") {
+            const std::string page = id(active_page).current_option().str();
+            if (page == "Timer") id(menu_sel) = 0;
+            else if (page == "To-do") id(menu_sel) = 1;
+            else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
+            else if (page == "Climate") id(menu_sel) = 3;
+            else if (page == "Music") id(menu_sel) = 4;
+            else if (page == "Weather") id(menu_sel) = 5;
+            else if (page != "Menu") id(menu_sel) = 6;
+            id(open_menu).execute();
+          }
+          else if (x == "Clock") id(open_clock).execute();
+          else if (x == "Light") id(open_light).execute();
+          else if (x == "Color picker") id(open_colorpicker).execute();
+          else if (x == "Climate") id(open_air).execute();
+          else if (x == "Music") id(open_music).execute();
+          else if (x == "Timer") id(open_timer).execute();
+          else if (x == "To-do") id(open_todo).execute();
+          else if (x == "Weather") id(open_forecast).execute();
