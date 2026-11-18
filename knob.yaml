@@ -10,7 +10,6 @@ packages:
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
-  asset_dir: src/assets
   timezone: Europe/Amsterdam
   weather_entity: weather.forecast_thuis
   climate_entity: climate.airco_beneden

@@ -348,8 +348,8 @@ lvgl:
                         arc_width: 3
 
             - label:
-                text: "\U000F062E"
-                text_font: font_mdi_icons
+                text: "\U000F0021"
+                text_font: montserrat_48
                 text_color: col_blue
                 align: CENTER
                 y: -22
