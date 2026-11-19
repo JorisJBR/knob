@@ -168,7 +168,7 @@ script:
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(420 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -183,6 +183,11 @@ script:
 
                     lv_obj_set_width(slots[i], w);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
+                    int title_x = mix > 760
+                      ? lv_map(mix, 760, 1000, (int)(76 * scale), (int)(108 * scale))
+                      : (int)(76 * scale);
+                    lv_obj_set_x(title_lbls[i], title_x);
+                    lv_obj_set_width(title_lbls[i], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {
@@ -209,7 +214,7 @@ script:
                   lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
                 });
                 lv_anim_set_ready_cb(&a, [](lv_anim_t * anim) {
-                  int n = 6;
+                  int n = 7;
                   id(menu_sel) = ((id(menu_sel) - 1) % n + n) % n;
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
@@ -287,7 +292,7 @@ script:
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(420 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -296,12 +301,17 @@ script:
                       opa_bg = lv_map(mix, 820, 1000, 0, 510);
                     }
                     if (mix > 760) {
-                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(128 * scale));
+                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(108 * scale));
                     }
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
+                    int title_x = mix > 760
+                      ? lv_map(mix, 760, 1000, (int)(76 * scale), (int)(108 * scale))
+                      : (int)(76 * scale);
+                    lv_obj_set_x(title_lbls[i], title_x);
+                    lv_obj_set_width(title_lbls[i], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {

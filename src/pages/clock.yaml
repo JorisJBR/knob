@@ -578,7 +578,7 @@ lvgl:
         - label:
             id: lbl_weather_condition
             align: CENTER
-            y: -6%
+            y: -1%
             width: 82%
             text_font: font_val_s
             text_color: col_text_wind

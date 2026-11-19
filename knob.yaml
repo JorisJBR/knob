@@ -408,6 +408,7 @@ select:
       - To-do
       - Weather
     set_action:
+      - lvgl.resume:
       - lambda: |-
           if (x == "Menu") {
             const std::string page = id(active_page).current_option().str();

@@ -13,7 +13,7 @@ font:
       weight: 300
       type: gfonts
     id: font_music_title
-    size: 56
+    size: 48
     bpp: 4
     glyphs: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?-''_()"'
 
@@ -341,9 +341,9 @@ lvgl:
                   align: CENTER
                   x: 0
                   y: 0
-                  width: 50%
-                  height: 50%
-                  radius: 25%
+                  width: 40%
+                  height: 40%
+                  radius: 20%
                   bg_opa: TRANSP
                   border_width: 0
                   clip_corner: true
@@ -360,7 +360,7 @@ lvgl:
                   id: lbl_music_title
                   align: CENTER
                   x: 0
-                  y: 28%
+                  y: 26%
                   width: 83%
                   text: "Ready to Play"
                   text_font: font_music_title
@@ -375,8 +375,8 @@ lvgl:
                   text_font: montserrat_48
                   text: ${icon_volume}
                   align: CENTER
-                  x: -20%
-                  y: 31%
+                  x: -25%
+                  y: 17%
                   text_color: 0xFFFFFF
 
               - obj: {id: vol_bar_1, align: CENTER, x: -8.3%, y: 17%, width: 2.5%, height: 5%, radius: 50%, bg_color: 0xA98FFF, bg_opa: COVER, border_width: 0, clickable: false}
@@ -389,10 +389,10 @@ lvgl:
 
               - button:
                   align: CENTER
-                  x: -20%
-                  y: 31%
-                  width: 12%
-                  height: 12%
+                  x: -15%
+                  y: 38%
+                  width: 11%
+                  height: 10%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
@@ -414,10 +414,10 @@ lvgl:
               - button:
                   align: CENTER
                   x: 0
-                  y: 28%
+                  y: 38%
                   id: play_btn
-                  width: 14%
-                  height: 14%
+                  width: 13%
+                  height: 12%
                   radius: 5%
                   bg_color: col_music_play_btn
                   bg_opa: COVER
@@ -440,10 +440,10 @@ lvgl:
               - button:
                   id: next_btn
                   align: CENTER
-                  x: 20%
-                  y: 31%
-                  width: 12%
-                  height: 12%
+                  x: 15%
+                  y: 38%
+                  width: 11%
+                  height: 10%
                   bg_color: col_music_dark
                   bg_opa: TRANSP
                   shadow_opa: TRANSP
