@@ -216,7 +216,7 @@ script:
             lambda: 'return id(in_clock) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
-            - script.execute: open_timer
+            - script.execute: timer_toggle
       - if:
           condition:
             lambda: 'return id(in_weather) && !id(in_menu) && !id(button_debounce);'
@@ -242,7 +242,13 @@ script:
           condition:
             lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
           then:
-            - script.execute: light_brightness_down
+            - if:
+                condition:
+                  lambda: 'return id(in_clock);'
+                then:
+                  - script.execute: {id: clock_timer_adjust, direction: -1}
+                else:
+                  - script.execute: light_brightness_down
       - if:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
@@ -291,7 +297,13 @@ script:
           condition:
             lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
           then:
-            - script.execute: light_brightness_up
+            - if:
+                condition:
+                  lambda: 'return id(in_clock);'
+                then:
+                  - script.execute: {id: clock_timer_adjust, direction: 1}
+                else:
+                  - script.execute: light_brightness_up
       - if:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'

@@ -143,6 +143,7 @@ lvgl:
               lambda: 'return id(alarm_state) != "triggered";'
             then:
               - script.execute: show_idle_clock
+              - script.execute: dim_clock_arcs
               - light.turn_on:
                   id: display_backlight
                   brightness: 50%
@@ -158,6 +159,7 @@ lvgl:
         - light.turn_off: display_backlight
   on_resume: 
     then:
+      - script.execute: wake_clock_arcs
       - light.turn_on:
           id: display_backlight
           brightness: 100%
@@ -415,7 +417,6 @@ select:
       - Color picker
       - Climate
       - Music
-      - Timer
       - To-do
       - Weather
       - Alarm
@@ -438,7 +439,6 @@ select:
           else if (x == "Color picker") id(open_colorpicker).execute();
           else if (x == "Climate") id(open_air).execute();
           else if (x == "Music") id(open_music).execute();
-          else if (x == "Timer") id(open_timer).execute();
           else if (x == "To-do") id(open_todo).execute();
           else if (x == "Weather") id(open_forecast).execute();
           else if (x == "Alarm") id(open_alarm).execute();

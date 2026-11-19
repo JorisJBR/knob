@@ -15,7 +15,7 @@ font:
     id: font_val_s
     size: 30
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-%°/"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .:-%°/"
 
   - file:
       family: DM+Sans
@@ -115,7 +115,17 @@ script:
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_LEFT
+      - script.execute: wake_clock_arcs
       - script.execute: refresh_clock_timer
+
+  - id: dim_clock_arcs
+    then:
+      - lambda: 'lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
+
+  - id: wake_clock_arcs
+    then:
+      - lambda: |-
+          if (id(in_clock)) lv_obj_clear_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
 
   - id: show_idle_clock
     then:
@@ -149,19 +159,29 @@ script:
             auto t = id(ha_time).now();
             snprintf(buf, sizeof(buf), "%02d:%02d", t.hour, t.minute);
             return buf;
-
+      - lvgl.arc.update:
+          id: arc_seconds
+          value: !lambda 'return id(ha_time).now().second;'
       - script.execute: refresh_clock_timer
 
   - id: refresh_clock_timer
     then:
       - lambda: |-
           if (!id(timer_running) && !id(timer_done)) {
-            lv_obj_add_flag(id(lbl_clock_timer), LV_OBJ_FLAG_HIDDEN);
-            return;
+            if (id(timer_total) <= 0 && id(timer_remaining) <= 0) {
+              lv_obj_add_flag(id(lbl_clock_timer), LV_OBJ_FLAG_HIDDEN);
+              lv_arc_set_range(id(arc_timer_progress), 0, 1);
+              lv_arc_set_value(id(arc_timer_progress), 0);
+              return;
+            }
           }
           lv_obj_clear_flag(id(lbl_clock_timer), LV_OBJ_FLAG_HIDDEN);
-          int seconds = id(timer_done) ? 0 : id(timer_remaining);
-          const char *state = id(timer_done) ? "DONE" : "RUN";
+          const int arc_max = 60 * 60;
+          const int seconds = id(timer_done) ? 0 : id(timer_remaining);
+          const char *state = id(timer_done) ? "DONE" :
+                              id(timer_running) ? "RUN" : "SET";
+          lv_arc_set_range(id(arc_timer_progress), 0, arc_max);
+          lv_arc_set_value(id(arc_timer_progress), seconds);
           static char buf[24];
           if (id(timer_done)) {
             snprintf(buf, sizeof(buf), "%s", state);
@@ -441,6 +461,60 @@ lvgl:
               0
             );
       widgets:
+        - arc:
+            id: arc_seconds
+            align: CENTER
+            width: 96%
+            height: 96%
+            rotation: 270
+            start_angle: 0
+            end_angle: 360
+            min_value: 0
+            max_value: 60
+            value: 0
+            arc_color: 0x000000
+            arc_opa: TRANSP
+            arc_width: 2
+            adjustable: false
+            clickable: false
+            indicator:
+              arc_color: col_ring_progress
+              arc_opa: COVER
+              arc_width: 2
+              arc_rounded: true
+            knob:
+              bg_opa: TRANSP
+              border_width: 0
+              width: 0
+              height: 0
+
+        - arc:
+            id: arc_timer_progress
+            align: CENTER
+            width: 88%
+            height: 88%
+            rotation: 270
+            start_angle: 0
+            end_angle: 360
+            min_value: 0
+            max_value: 1
+            value: 0
+            arc_color: 0x000000
+            arc_opa: TRANSP
+            arc_width: 3
+            adjustable: false
+            clickable: false
+            indicator:
+              arc_color: col_text_temp
+              arc_opa: COVER
+              arc_width: 3
+              arc_rounded: true
+            knob:
+              bg_opa: TRANSP
+              border_width: 0
+              width: 0
+              height: 0
+
         - label:
             id: lbl_clock
             align: CENTER
