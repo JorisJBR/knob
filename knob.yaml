@@ -7,6 +7,7 @@ packages:
   todo_page:   !include src/pages/todo.yaml
   timer_page:  !include src/pages/timer.yaml
   menu_page:   !include src/pages/menu.yaml
+  alarm_page:  !include src/pages/alarm.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
@@ -16,6 +17,7 @@ substitutions:
   music_player_entity: media_player.woonkamer
   light_entity: light.spots_woonkamer
   todo_entity: todo.to_do
+  alarm_entity: alarm_control_panel.alarmo
   #calendar_entity: ?
   #camera_entity: ?
   #energy_page: ?
@@ -136,12 +138,20 @@ lvgl:
   on_idle:
     - timeout: 20s
       then:
-        - light.turn_on: 
-            id: display_backlight
-            brightness: 50%
+        - if:
+            condition:
+              lambda: 'return id(alarm_state) != "triggered";'
+            then:
+              - light.turn_on:
+                  id: display_backlight
+                  brightness: 50%
     - timeout: 30s
       then:
-        - lvgl.pause:
+        - if:
+            condition:
+              lambda: 'return id(alarm_state) != "triggered";'
+            then:
+              - lvgl.pause:
   on_pause:
     then:
         - light.turn_off: display_backlight
@@ -407,6 +417,7 @@ select:
       - Timer
       - To-do
       - Weather
+      - Alarm
     set_action:
       - lvgl.resume:
       - lambda: |-
@@ -429,3 +440,4 @@ select:
           else if (x == "Timer") id(open_timer).execute();
           else if (x == "To-do") id(open_todo).execute();
           else if (x == "Weather") id(open_forecast).execute();
+          else if (x == "Alarm") id(open_alarm).execute();

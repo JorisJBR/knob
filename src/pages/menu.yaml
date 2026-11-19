@@ -23,7 +23,7 @@ font:
     id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F06E8\U000F0756\U000F075A\U000F07D0\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F068A\U000F06E8\U000F0756\U000F075A\U000F07D0\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
 
 color:
   - id: col_menu_bg
@@ -65,7 +65,8 @@ script:
           else if (page == "Climate") id(menu_sel) = 3;
           else if (page == "Music") id(menu_sel) = 4;
           else if (page == "Weather") id(menu_sel) = 5;
-          else id(menu_sel) = 6;
+          else if (page == "Alarm") id(menu_sel) = 6;
+          else id(menu_sel) = 7;
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
       - lambda: 'id(active_page).publish_state("Menu");'
@@ -94,7 +95,8 @@ script:
           else if (sel == 3) { id(open_air).execute(); }
           else if (sel == 4) { id(open_music).execute(); }
           else if (sel == 5) { id(open_forecast).execute(); }
-          else if (sel == 6) { id(open_clock).execute(); }
+          else if (sel == 6) { id(open_alarm).execute(); }
+          else if (sel == 7) { id(open_clock).execute(); }
           else               { id(close_menu).execute(); }
 
   - id: menu_scroll_up
@@ -114,7 +116,7 @@ script:
                 lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
                 lv_anim_set_exec_cb(&a, [](void * obj, int32_t progress) {
                   const int SLOT_N = 5;
-                  const int ITEM_N = 7;
+                  const int ITEM_N = 8;
                   const int OFFSETS[5] = {-2, -1, 0, 1, 2};
                   const float screen_w = lv_obj_get_width(lv_scr_act());
                   const float screen_h = lv_obj_get_height(lv_scr_act());
@@ -207,14 +209,14 @@ script:
                   lv_obj_set_style_opa(id(slot_center_sub), center_sub_opa, LV_PART_MAIN);
 
                   // Animate arrow indicator upward
-                  const int dot_offsets[7] = {-84, -56, -28, 0, 28, 56, 84};
+                  const int dot_offsets[8] = {-98, -70, -42, -14, 14, 42, 70, 98};
                   int from_dot = id(menu_sel);
                   int to_dot = ((from_dot - 1) % ITEM_N + ITEM_N) % ITEM_N;
                   int arrow_y = (int)(dot_offsets[from_dot] + (dot_offsets[to_dot] - dot_offsets[from_dot]) * phase);
                   lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
                 });
                 lv_anim_set_ready_cb(&a, [](lv_anim_t * anim) {
-                  int n = 7;
+                  int n = 8;
                   id(menu_sel) = ((id(menu_sel) - 1) % n + n) % n;
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
@@ -238,7 +240,7 @@ script:
                 lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
                 lv_anim_set_exec_cb(&a, [](void * obj, int32_t progress) {
                   const int SLOT_N = 5;
-                  const int ITEM_N = 7;
+                  const int ITEM_N = 8;
                   const int OFFSETS[5] = {-2, -1, 0, 1, 2};
                   const float screen_w = lv_obj_get_width(lv_scr_act());
                   const float screen_h = lv_obj_get_height(lv_scr_act());
@@ -331,14 +333,14 @@ script:
                   lv_obj_set_style_opa(id(slot_center_sub), center_sub_opa, LV_PART_MAIN);
 
                   // Animate arrow indicator downward
-                  const int dot_offsets[7] = {-84, -56, -28, 0, 28, 56, 84};
+                  const int dot_offsets[8] = {-98, -70, -42, -14, 14, 42, 70, 98};
                   int from_dot = id(menu_sel);
                   int to_dot = (from_dot + 1) % ITEM_N;
                   int arrow_y = (int)(dot_offsets[from_dot] + (dot_offsets[to_dot] - dot_offsets[from_dot]) * phase);
                   lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
                 });
                 lv_anim_set_ready_cb(&a, [](lv_anim_t * anim) {
-                  id(menu_sel) = (id(menu_sel) + 1) % 7;
+                  id(menu_sel) = (id(menu_sel) + 1) % 8;
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
                 });
@@ -347,7 +349,7 @@ script:
   - id: refresh_menu
     then:
       - lambda: |-
-          const int ITEM_N = 7;
+          const int ITEM_N = 8;
           const int SLOT_N = 5;
           const float screen_w = lv_obj_get_width(lv_scr_act());
           const float screen_h = lv_obj_get_height(lv_scr_act());
@@ -378,12 +380,12 @@ script:
           const lv_font_t* sub_font = id(font_menu_sub)->get_lv_font();
           const int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
-          std::string titles[7] = {
+          std::string titles[8] = {
             "Timer", "To-do",
             id(ha_light_fname).state.empty() ? "Light" : id(ha_light_fname).state,
             id(ha_air_fname).state.empty() ? "Climate" : id(ha_air_fname).state,
             id(media_player_fname).state.empty() ? "Music" : id(media_player_fname).state,
-            "Weather",
+            "Weather", "Alarm",
             "Home"
           };
 
@@ -403,7 +405,7 @@ script:
             todo_summary = std::to_string(todo_done_count) + " done / " +
                            std::to_string(todo_open_count) + " open";
           }
-          std::string subtitles[7] = {
+          std::string subtitles[8] = {
             "5 minutes",
             todo_summary,
             id(light_on)
@@ -412,31 +414,34 @@ script:
             id(ha_air_hvac_mode).state + " - " + ac_temperature + "C",
             id(media_player_status).state + " - " + id(media_player_title).state,
             "Hourly forecast",
+            id(alarm_state),
             std::string(home_temperature) + "C"
           };
           
-          const char* ICONS[7] = {
+          const char* ICONS[8] = {
             "\U000F051B", "\U000F0756", "\U000F06E8",
-            "\U000F001B", "\U000F075A", "\U000F0595", "\U000F02DC"
+            "\U000F001B", "\U000F075A", "\U000F0595", "\U000F068A", "\U000F02DC"
           };
-          // Per-item accent colors: Timer, To-do, Lights, AC, Music, Weather, Home
-          const uint32_t ACCENT_COLORS[7] = {
+          // Per-item accent colors: Timer, To-do, Lights, AC, Music, Weather, Alarm, Home
+          const uint32_t ACCENT_COLORS[8] = {
             0xFB923C,  // Timer   - orange
             0x4ADE80,  // To-do   - green
             0xFDC003,  // Lights  - yellow
             0x5ABBFD,  // AC      - ice blue
             0xA792E8,  // Music   - purple
             0x5ECAD3,  // Weather - cyan
+            0xE65353,  // Alarm   - red
             0x576BFE   // Home    - blue
           };
           // Pill bg: darker version of accent
-          const uint32_t PILL_COLORS[7] = {
+          const uint32_t PILL_COLORS[8] = {
             0x2A1200,  // Timer
             0x0A2A14,  // To-do
             0x2A1E00,  // Lights
             0x001A2A,  // AC
             0x150A2A,  // Music
             0x08262A,  // Weather
+            0x2A0A0A,  // Alarm
             0x0D1537   // Home
           };
           int sel = id(menu_sel);
@@ -554,9 +559,9 @@ script:
 
           // Indicator dots: selected = triangle shape (wide-bottom trapezoid via radius=0)
           // Use width to simulate triangle: selected wider at bottom
-          const int dot_offsets[7] = {-84, -56, -28, 0, 28, 56, 84};
-          lv_obj_t* sdots[7] = {
-            id(sdot_0), id(sdot_1), id(sdot_2), id(sdot_3), id(sdot_4), id(sdot_5), id(sdot_6)
+          const int dot_offsets[8] = {-98, -70, -42, -14, 14, 42, 70, 98};
+          lv_obj_t* sdots[8] = {
+            id(sdot_0), id(sdot_1), id(sdot_2), id(sdot_3), id(sdot_4), id(sdot_5), id(sdot_6), id(sdot_7)
           };
           for (int d = 0; d < ITEM_N; d++) {
             if (d == sel) {
@@ -884,6 +889,19 @@ lvgl:
                   align: RIGHT_MID
                   x: -4.2%
                   y: 17.5%
+                  width: 2%
+                  height: 2%
+                  radius: 1%
+                  bg_color: col_menu_sdot_dim
+                  bg_opa: COVER
+                  border_width: 0
+                  clickable: false
+                  scrollbar_mode: "OFF"
+              - obj:
+                  id: sdot_7
+                  align: RIGHT_MID
+                  x: -5.5%
+                  y: 20.42%
                   width: 2%
                   height: 2%
                   radius: 1%

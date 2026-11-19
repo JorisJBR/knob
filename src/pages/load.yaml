@@ -128,6 +128,10 @@ script:
                   id(close_menu).execute();
                   return;
                 }
+                if (id(in_alarm)) {
+                  id(close_alarm).execute();
+                  return;
+                }
                 if (id(in_clock)){
                   id(close_clock).execute();
                   return;

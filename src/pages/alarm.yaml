@@ -1,0 +1,602 @@
+font:
+  - file: "gfonts://DM+Sans"
+    id: font_alarm_state
+    size: 22
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -:()"
+
+  - file: "gfonts://DM+Sans"
+    id: font_alarm_button
+    size: 16
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+
+  - file: "gfonts://DM+Sans"
+    id: font_alarm_pin
+    size: 20
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 *()"
+
+color:
+  - id: col_alarm_bg
+    hex: "080B12"
+  - id: col_alarm_surface
+    hex: "171D2A"
+  - id: col_alarm_text
+    hex: "F1F5F9"
+  - id: col_alarm_dim
+    hex: "94A3B8"
+  - id: col_alarm_red
+    hex: "E65353"
+  - id: col_alarm_blue
+    hex: "3978A8"
+  - id: col_alarm_green
+    hex: "287B62"
+  - id: col_alarm_gold
+    hex: "95703A"
+
+globals:
+  - id: alarm_state
+    type: std::string
+    initial_value: '"unknown"'
+  - id: alarm_pin
+    type: std::string
+    initial_value: '""'
+  - id: in_alarm
+    type: bool
+    initial_value: 'false'
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_alarm_state
+    entity_id: ${alarm_entity}
+    on_value:
+      - then:
+          - lambda: 'id(alarm_state) = x;'
+          - script.execute: refresh_alarm_state
+          - if:
+              condition:
+                lambda: 'return id(alarm_state) == "triggered";'
+              then:
+                - script.execute: alarm_triggered
+
+script:
+  - id: refresh_alarm_state
+    then:
+      - lambda: |-
+          const std::string state = id(alarm_state);
+          const char *label = "UNKNOWN";
+          if (state == "disarmed") label = "DISARMED";
+          else if (state == "arming") label = "ARMING";
+          else if (state == "pending") label = "PENDING";
+          else if (state == "triggered") label = "TRIGGERED";
+          else if (state == "armed_home") label = "ARMED HOME";
+          else if (state == "armed_away") label = "ARMED AWAY";
+          else if (state == "armed_night") label = "ARMED NIGHT";
+          else if (state == "armed_vacation") label = "ARMED VACATION";
+          else if (state == "armed_custom_bypass") label = "ARMED BYPASS";
+          lv_label_set_text(id(lbl_alarm_state), label);
+          if (id(in_menu)) id(refresh_menu).execute();
+
+  - id: refresh_alarm_pin
+    then:
+      - lambda: |-
+          std::string masked = id(alarm_pin).empty() ? "PIN CODE (OPTIONAL)" : "PIN: ";
+          if (!id(alarm_pin).empty()) masked.append(id(alarm_pin).size(), '*');
+          lv_label_set_text(id(lbl_alarm_pin), masked.c_str());
+
+  - id: alarm_add_digit
+    parameters:
+      digit: int
+    then:
+      - lambda: |-
+          if (id(alarm_pin).size() < 8) {
+            id(alarm_pin).push_back(static_cast<char>('0' + digit));
+          }
+      - script.execute: refresh_alarm_pin
+
+  - id: alarm_clear_pin
+    then:
+      - lambda: 'id(alarm_pin).clear();'
+      - script.execute: refresh_alarm_pin
+
+  - id: alarm_delete_digit
+    then:
+      - lambda: |-
+          if (!id(alarm_pin).empty()) id(alarm_pin).pop_back();
+      - script.execute: refresh_alarm_pin
+
+  - id: open_alarm
+    then:
+      - lvgl.resume:
+      - light.turn_on:
+          id: display_backlight
+          brightness: 100%
+      - lambda: |-
+          id(in_menu) = false;
+          id(in_clock) = false;
+          id(in_weather) = false;
+          id(in_light) = false;
+          id(in_colorpicker) = false;
+          id(in_air) = false;
+          id(in_music) = false;
+          id(in_timer) = false;
+          id(in_todo) = false;
+          id(in_alarm) = true;
+          id(alarm_pin).clear();
+          id(active_page).publish_state("Alarm");
+      - lvgl.page.show: page_alarm
+      - script.execute: refresh_alarm_state
+      - script.execute: refresh_alarm_pin
+
+  - id: close_alarm
+    then:
+      - globals.set:
+          id: in_alarm
+          value: 'false'
+      - script.execute: open_menu
+
+  - id: alarm_triggered
+    then:
+      - script.execute: open_alarm
+
+  - id: alarm_arm_home
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_home
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_away
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_away
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_night
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_night
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_vacation
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_vacation
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_custom_bypass
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_custom_bypass
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_disarm
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_disarm
+          data:
+            entity_id: ${alarm_entity}
+            code: !lambda 'return id(alarm_pin);'
+      - script.execute: alarm_clear_pin
+
+lvgl:
+  pages:
+    - id: page_alarm
+      bg_color: col_alarm_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 3%
+            text: "ALARM"
+            text_font: font_lbl
+            text_color: col_alarm_text
+
+        - obj:
+            align: TOP_RIGHT
+            x: -7%
+            y: 3%
+            width: 17%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: close_alarm
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "MENU"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - label:
+            id: lbl_alarm_state
+            align: CENTER
+            y: -36%
+            text: "UNKNOWN"
+            text_font: font_alarm_state
+            text_color: col_alarm_text
+
+        - label:
+            id: lbl_alarm_pin
+            align: CENTER
+            y: -27%
+            text: "PIN CODE (OPTIONAL)"
+            text_font: font_alarm_pin
+            text_color: col_alarm_dim
+
+        - obj:
+            align: CENTER
+            x: -18%
+            y: -17%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 1
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "1"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            y: -17%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 2
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "2"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 18%
+            y: -17%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 3
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "3"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: -18%
+            y: -8%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 4
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "4"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            y: -8%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 5
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "5"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 18%
+            y: -8%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 6
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "6"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: -18%
+            y: 1%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 7
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "7"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            y: 1%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 8
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "8"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 18%
+            y: 1%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 9
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "9"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: -18%
+            y: 10%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_clear_pin
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "CLR"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - obj:
+            align: CENTER
+            y: 10%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 0
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "0"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 18%
+            y: 10%
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_delete_digit
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "DEL"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - obj:
+            align: CENTER
+            x: -15%
+            y: 17%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_green
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_arm_home
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "HOME"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 15%
+            y: 17%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_blue
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_arm_away
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "AWAY"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: -15%
+            y: 26%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_gold
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_arm_night
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "NIGHT"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 15%
+            y: 26%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_gold
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_arm_vacation
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "VACATION"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: -15%
+            y: 35%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_arm_custom_bypass
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "BYPASS"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            align: CENTER
+            x: 15%
+            y: 35%
+            width: 28%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_red
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_disarm
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "DISARM"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
