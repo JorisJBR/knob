@@ -159,8 +159,8 @@ script:
             return buf;
 
       - lvgl.arc.update:
-          id: arc_minute
-          value: !lambda "return id(ha_time).now().minute;"
+          id: arc_seconds
+          value: !lambda "return id(ha_time).now().second;"
 
   - id: refresh_clock_timer
     then:
@@ -423,8 +423,7 @@ time:
   - platform: homeassistant
     id: ha_time
     on_time:
-      - seconds: 0
-        minutes: /1
+      - seconds: /1
         then:
           - script.execute: update_clock
     on_time_sync:
@@ -478,7 +477,7 @@ lvgl:
               height: 0
 
         - arc:
-            id: arc_minute
+            id: arc_seconds
             align: CENTER
             width: 95%
             height: 95%

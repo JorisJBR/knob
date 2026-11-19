@@ -345,7 +345,7 @@ lvgl:
                         arc_width: 3
 
             - label:
-                text: "\U000F062E"
+                text: "\U000F07D0"
                 text_font: font_mdi_icons
                 text_color: col_blue
                 align: CENTER

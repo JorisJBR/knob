@@ -104,6 +104,11 @@ sensor:
           if (pct == id(light_brightness)) return;
           id(light_brightness) = pct < 0 ? 0 : (pct > 100 ? 100 : pct);
       - script.execute: refresh_light_arc
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: refresh_menu
 
 binary_sensor:
   - platform: homeassistant
@@ -112,6 +117,11 @@ binary_sensor:
     on_state:
       - lambda: 'id(light_on) = x;'
       - script.execute: refresh_light_arc
+      - if:
+          condition:
+            lambda: 'return id(in_menu);'
+          then:
+            - script.execute: refresh_menu
 
 text_sensor:
   - platform: homeassistant
@@ -295,7 +305,6 @@ script:
           int v = id(light_brightness) + id(light_brightness_step);
           id(light_brightness) = v > 100 ? 100 : v;
       - script.execute: refresh_light_arc
-      - delay: 40ms
       - if:
           condition:
             lambda: 'return id(light_on);'
@@ -318,7 +327,6 @@ script:
           int v = id(light_brightness) - id(light_brightness_step);
           id(light_brightness) = v < 0 ? 0 : v;
       - script.execute: refresh_light_arc
-      - delay: 40ms
       - if:
           condition:
             lambda: 'return id(light_on);'
