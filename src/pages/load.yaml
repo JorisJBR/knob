@@ -171,6 +171,12 @@ script:
     then:
       - if:
           condition:
+            lambda: 'return id(in_alarm) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: alarm_confirm_selection
+      - if:
+          condition:
             lambda: 'return id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
@@ -224,6 +230,11 @@ script:
     then:
       - if:
           condition:
+            lambda: 'return id(in_alarm) && !id(alarm_pin_entry);'
+          then:
+            - script.execute: {id: move_alarm_selection, direction: -1}
+      - if:
+          condition:
             lambda: 'return id(in_colorpicker);'
           then:
             - script.execute: light_hue_down
@@ -266,6 +277,11 @@ script:
 
   - id: rotate_clockwise
     then:
+      - if:
+          condition:
+            lambda: 'return id(in_alarm) && !id(alarm_pin_entry);'
+          then:
+            - script.execute: {id: move_alarm_selection, direction: 1}
       - if:
           condition:
             lambda: 'return id(in_colorpicker);'

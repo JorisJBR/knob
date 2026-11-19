@@ -37,6 +37,6 @@ The following entity types should be supported:
 - Calendar: A page showing the next upcoming event(s) on one or multiple calendar entities
 - [x] Todo: A page showing a todo list entity
   - Rotate the dial to highlight a todo-item, and mark it as done/not done on single press
-- [x] Alarm: Arm or disarm Alarmo modes with a touch PIN keypad; the display wakes to this page when triggered
+- [x] Alarm: Select Disarmed, Night, or Away with the dial; touch PIN entry appears only when Alarmo requires a disarm code
 - [ ] Energy: A page showing the current energy price & usage
 
