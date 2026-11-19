@@ -216,7 +216,7 @@ script:
             lambda: 'return id(in_clock) && !id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
-            - script.execute: timer_toggle
+            - script.execute: open_timer
       - if:
           condition:
             lambda: 'return id(in_weather) && !id(in_menu) && !id(button_debounce);'

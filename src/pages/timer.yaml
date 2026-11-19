@@ -102,6 +102,7 @@ script:
   - id: open_timer
     then:
       - globals.set: {id: in_timer,  value: 'true'}
+      - globals.set: {id: in_clock,  value: 'false'}
       - globals.set: {id: in_menu,   value: 'false'}
       - script.execute: refresh_timer
       - script.execute: refresh_clock_timer
@@ -113,8 +114,7 @@ script:
   - id: close_timer
     then:
       - globals.set: {id: in_timer,   value: 'false'}
-      - globals.set: {id: timer_running, value: 'false'}
-      - script.execute: open_menu
+      - script.execute: open_clock
 
   - id: timer_toggle
     then:
