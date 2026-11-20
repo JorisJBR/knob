@@ -16,6 +16,9 @@ globals:
   - id: in_weather
     type: bool
     initial_value: 'false'
+  - id: forecast_type
+    type: std::string
+    initial_value: '"hourly"'
   - id: next_hour_temperature
     type: float
     initial_value: '0'
@@ -64,8 +67,6 @@ script:
   - id: open_forecast
     then:
       - globals.set: {id: in_weather, value: 'true'}
-      - globals.set: {id: in_clock, value: 'false'}
-      - globals.set: {id: in_menu, value: 'false'}
       - lambda: 'id(active_page).publish_state("Weather");'
       - lvgl.page.show:
           id: page_weather
@@ -81,22 +82,18 @@ script:
           text: "\U000F0590"
       - script.execute: get_forecast
 
-  - id: close_forecast
+  - id: switch_forecast
     then:
-      - lvgl.page.show:
-          id: page_clock
-          animation: MOVE_TOP
-      - globals.set: {id: in_weather, value: 'false'}
-      - globals.set: {id: in_clock, value: 'true'}
-      - lambda: 'id(active_page).publish_state("Clock");'
-
+      - lambda: 'id(forecast_type) = id(forecast_type) == "hourly" ? "daily" : "hourly";'
+      - script.execute: get_forecast
+      
   - id: get_forecast
     then:
       - homeassistant.action:
           action: weather.get_forecasts
           data:
             entity_id: ${weather_entity}
-            type: hourly
+            type: !lambda 'return id(forecast_type);'
           capture_response: true
           on_success:
             - lambda: |-

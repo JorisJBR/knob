@@ -118,8 +118,82 @@ globals:
     type: int
     initial_value: '0'
 
-interval:
-  - interval: 1s
+script:
+  - id: open_clock
+    then:
+      - globals.set: {id: in_clock, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Clock");'
+      - lvgl.page.show:
+          id: page_clock
+          animation: MOVE_LEFT
+      - lambda: lv_obj_clear_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
+      - lambda: lv_obj_clear_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);
+      - script.execute: refresh_clock_timer
+      - script.execute: update_date
+
+  - id: update_date
+    then:
+      - lambda: |-
+          auto now = id(ha_time).now();
+          if (now.is_valid()) {
+            static const char *days[] = {
+              "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"
+            };
+            static const char *months[] = {
+              "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+              "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+            };
+            static char date_buf[20];
+            snprintf(
+              date_buf,
+              sizeof(date_buf),
+              "%s %02d %s",
+              days[now.day_of_week - 1],
+              now.day_of_month,
+              months[now.month - 1]
+            );
+            lv_label_set_text(id(lbl_clock_date), date_buf);
+          }
+
+  - id: show_idle_clock
+    then:
+      - lambda: |-
+          id(in_menu) = false;
+          id(in_clock) = true;
+          id(in_todo) = false;
+          id(in_light) = false;
+          id(in_colorpicker) = false;
+          id(in_air) = false;
+          id(in_music) = false;
+          id(in_weather) = false;
+          id(in_alarm) = false;
+          id(active_page).publish_state("Clock");
+      - lambda: 'lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
+      - lambda: 'lv_obj_add_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);'
+      - lvgl.page.show: page_clock
+      - script.execute: update_clock
+
+  - id: close_clock
+    then:
+      - globals.set: {id: in_clock, value: 'false'}
+      - script.execute: open_menu
+
+  - id: update_clock
+    then:
+      - lvgl.label.update:
+          id: lbl_clock
+          text: !lambda |-
+            static char buf[8];
+            auto t = id(ha_time).now();
+            snprintf(buf, sizeof(buf), "%02d:%02d", t.hour, t.minute);
+            return buf;
+      - lvgl.arc.update:
+          id: arc_seconds
+          value: !lambda 'return id(ha_time).now().second;'
+      - script.execute: refresh_clock_timer
+
+  - id: refresh_clock_timer
     then:
       - lambda: |-
           if (id(timer_running) && id(timer_remaining) > 0) {
@@ -163,72 +237,7 @@ interval:
               LV_PART_INDICATOR
             );
           }
-      - script.execute: refresh_clock_timer
 
-script:
-  - id: open_clock
-    then:
-      - globals.set: {id: in_clock, value: 'true'}
-      - globals.set: {id: in_menu, value: 'false'}
-      - lambda: 'id(active_page).publish_state("Clock");'
-      - lvgl.page.show:
-          id: page_clock
-          animation: MOVE_LEFT
-      - script.execute: wake_clock
-      - script.execute: refresh_clock_timer
-
-  - id: dim_clock
-    then:
-      - lambda: 'lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
-      # - lambda: 'lv_obj_add_flag(id(arc_timer_progress), LV_OBJ_FLAG_HIDDEN);'
-      # - lambda: 'lv_obj_add_flag(id(lbl_clock_timer), LV_OBJ_FLAG_HIDDEN);'
-
-  - id: wake_clock
-    then:
-      - lambda: |-
-          if (id(in_clock)) lv_obj_clear_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
-          // if (id(in_clock)) lv_obj_clear_flag(id(arc_timer_progress), LV_OBJ_FLAG_HIDDEN);
-          // if (id(in_clock)) lv_obj_clear_flag(id(lbl_clock_timer), LV_OBJ_FLAG_HIDDEN);
-
-  - id: show_idle_clock
-    then:
-      - lambda: |-
-          id(in_menu) = false;
-          id(in_clock) = true;
-          id(in_todo) = false;
-          id(in_light) = false;
-          id(in_colorpicker) = false;
-          id(in_air) = false;
-          id(in_music) = false;
-          id(in_weather) = false;
-          id(in_alarm) = false;
-          id(active_page).publish_state("Clock");
-      - script.execute: dim_clock
-      - lvgl.page.show: page_clock
-      - script.execute: update_clock
-
-  - id: close_clock
-    then:
-      - globals.set: {id: in_clock, value: 'false'}
-      - script.execute: open_menu
-
-  - id: update_clock
-    then:
-      - lvgl.label.update:
-          id: lbl_clock
-          text: !lambda |-
-            static char buf[8];
-            auto t = id(ha_time).now();
-            snprintf(buf, sizeof(buf), "%02d:%02d", t.hour, t.minute);
-            return buf;
-      - lvgl.arc.update:
-          id: arc_seconds
-          value: !lambda 'return id(ha_time).now().second;'
-      - script.execute: refresh_clock_timer
-
-  - id: refresh_clock_timer
-    then:
-      - lambda: |-
           // Nothing configured yet
           if (!id(timer_running) && !id(timer_done) &&
               id(timer_total) <= 0 && id(timer_remaining) <= 0) {
@@ -499,6 +508,16 @@ lvgl:
               border_width: 0
               width: 0
               height: 0
+
+        - label:
+            id: lbl_clock_date
+            align: CENTER
+            y: -20%
+            width: 82%
+            text_font: font_val_s
+            text_color: col_text_lbl
+            text_align: CENTER
+            text: "FRI 20 NOV"
 
         - label:
             id: lbl_clock
