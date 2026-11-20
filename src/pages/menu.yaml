@@ -58,9 +58,8 @@ script:
     then:
       - lambda: |-
           const std::string page = id(active_page).current_option().str();
-          if (page == "Menu") {
-          } else if (page == "To-do") id(menu_sel) = 0;
-          else if (page == "Light" || page == "Color picker") id(menu_sel) = 1;
+          if (page == "To-do") id(menu_sel) = 0;
+          else if (page == "Light") id(menu_sel) = 1;
           else if (page == "Climate") id(menu_sel) = 2;
           else if (page == "Music") id(menu_sel) = 3;
           else if (page == "Weather") id(menu_sel) = 4;
@@ -68,7 +67,6 @@ script:
           else id(menu_sel) = 6;
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
-      - lambda: 'id(active_page).publish_state("Menu");'
       - lvgl.page.show:
           id: page_menu
           animation: MOVE_LEFT
@@ -76,12 +74,6 @@ script:
   - id: close_menu
     then:
       - globals.set: {id: in_menu, value: 'false'}
-      - globals.set: {id: in_clock, value: 'true'}
-      - globals.set: {id: in_weather, value: 'false'}
-      - lambda: 'id(active_page).publish_state("Clock");'
-      - lvgl.page.show:
-          id: page_clock
-          animation: MOVE_RIGHT
 
   - id: menu_confirm
     then:
