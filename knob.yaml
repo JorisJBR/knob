@@ -8,6 +8,7 @@ packages:
   timer_page:  !include src/pages/timer.yaml
   menu_page:   !include src/pages/menu.yaml
   alarm_page:  !include src/pages/alarm.yaml
+  weather_page:  !include src/pages/weather.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
@@ -320,7 +321,7 @@ touchscreen:
     update_interval: 25ms
     address: 0x15
     on_touch:
-      # - lvgl.resume:
+      - lvgl.resume:
       - lambda: |-
           if (id(swipe_start_x) < 0) {
               id(swipe_start_x) = touch.x;
@@ -328,20 +329,6 @@ touchscreen:
           }
           id(swipe_cur_x) = touch.x;
           id(swipe_cur_y) = touch.y;
-    on_release:
-      - lambda: |-
-          int dx = id(swipe_cur_x) - id(swipe_start_x);
-          int dy = id(swipe_cur_y) - id(swipe_start_y);
-          id(swipe_start_x) = -1;
-          if (abs(dx) < 50 || abs(dy) > abs(dx)) return;
-          bool on_clock = !id(in_menu) && !id(in_light) && !id(in_air)
-                      && !id(in_music) && !id(in_timer) && !id(in_todo)
-                      && !id(in_colorpicker);
-          if (on_clock && dx < 0) {
-              id(open_menu).execute();
-          } else if (id(in_menu) && (dx > 0 || dx < 0)) {
-              id(close_menu).execute();
-          }
 
 # Backlight toggle
 light:
@@ -367,10 +354,10 @@ sensor:
       inverted: true
     resolution: 2
     on_clockwise:
-      # - lvgl.resume:
+      - lvgl.resume:
       - script.execute: rotate_anticlockwise
     on_anticlockwise:
-      # - lvgl.resume:
+      - lvgl.resume:
       - script.execute: rotate_clockwise
 
 # Front button
@@ -392,7 +379,7 @@ binary_sensor:
           - OFF for at least 40ms
         invalid_cooldown: 150ms
         then:
-          # - lvgl.resume:
+          - lvgl.resume:
           - script.execute: double_click
 
       - timing:
@@ -400,7 +387,7 @@ binary_sensor:
           - OFF for at least 520ms
         invalid_cooldown: 150ms
         then:
-          # - lvgl.resume:
+          - lvgl.resume:
           - script.execute: single_click
 
 select:

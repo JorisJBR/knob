@@ -252,7 +252,6 @@ script:
           id(in_colorpicker) = false;
           id(in_air) = false;
           id(in_music) = false;
-          id(in_timer) = false;
           id(in_todo) = false;
           id(in_alarm) = true;
           id(alarm_pin).clear();
