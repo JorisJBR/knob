@@ -133,9 +133,9 @@ lvgl:
   color_depth: 16
   bg_color: col_bg
   default_font: font_lbl
-  on_focus:
-    then:
-      - lvgl.resume:
+  # on_focus:
+  #   then:
+  #     - lvgl.resume:
   on_idle:
     - timeout: 30s
       then:

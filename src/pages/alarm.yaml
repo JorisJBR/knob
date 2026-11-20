@@ -187,6 +187,18 @@ script:
           });
           lv_anim_start(&animation);
 
+  - id: next_alarm_mode
+    then:
+      - script.execute:
+          id: move_alarm_selection
+          direction: 1
+
+  - id: previous_alarm_mode
+    then:
+      - script.execute:
+          id: move_alarm_selection
+          direction: -1
+
   - id: move_alarm_selection
     parameters:
       direction: int

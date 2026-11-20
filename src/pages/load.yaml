@@ -53,6 +53,20 @@ interval:
                   id(dot_tick) == 2 ? lv_color_hex(0x41B3FF) : lv_color_hex(0x0D2340), LV_PART_MAIN);
 
 script:
+  - id: route_input
+    parameters: 
+      action: int
+    then:
+      - lambda: |-
+          dispatch_page_action(static_cast<InputAction>(action), {
+            { id(page_clock), id(timer_encoder_up), id(timer_encoder_down), id(timer_toggle) },
+            { id(page_light), id(light_brightness_up), id(light_brightness_down), id(toggle_light_onoff) },
+            { id(page_air), id(air_temp_up), id(air_temp_down), id(air_toggle_mode) },
+            { id(page_music), id(music_volume_up), id(music_volume_down), id(play_toggle) },
+            { id(page_todo), id(select_todo_next), id(select_todo_previous), id(todo_toggle_selected) },
+            { id(page_alarm), id(next_alarm_mode), id(previous_alarm_mode), id(alarm_confirm_selection) }
+          });
+
   - id: update_loading_page
     then:
       - lvgl.label.update:
@@ -197,11 +211,7 @@ script:
           } else if (id(in_clock)) {
             id(timer_encoder_down).execute();
           } else if (id(in_air)) {
-            if (id(air_mode) == 0) {
-              id(air_temp_down).execute();
-            } else {
-              id(air_fan_down).execute();
-            }
+            id(air_temp_down).execute();
           } else if (id(in_music)) {
             id(music_volume_down).execute();
           } else if (id(in_todo)) {
@@ -220,11 +230,7 @@ script:
           } else if (id(in_clock)) {
             id(timer_encoder_up).execute();
           } else if (id(in_air)) {
-            if (id(air_mode) == 0) {
-              id(air_temp_up).execute();
-            } else {
-              id(air_fan_up).execute();
-            }
+            id(air_temp_up).execute();
           } else if (id(in_music)) {
             id(music_volume_up).execute();
           } else if (id(in_todo)) {

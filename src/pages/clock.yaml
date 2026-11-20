@@ -121,8 +121,6 @@ globals:
 script:
   - id: open_clock
     then:
-      - globals.set: {id: in_clock, value: 'true'}
-      - globals.set: {id: in_menu, value: 'false'}
       - lambda: 'id(active_page).publish_state("Clock");'
       - lvgl.page.show:
           id: page_clock
@@ -160,7 +158,7 @@ script:
     then:
       - lambda: |-
           id(in_menu) = false;
-          id(in_clock) = true;
+          //id(in_clock) = true;
           id(in_todo) = false;
           id(in_light) = false;
           id(in_colorpicker) = false;
@@ -168,16 +166,11 @@ script:
           id(in_music) = false;
           id(in_weather) = false;
           id(in_alarm) = false;
-          id(active_page).publish_state("Clock");
+          //id(active_page).publish_state("Clock");
       - lambda: 'lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
       - lambda: 'lv_obj_add_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);'
       - lvgl.page.show: page_clock
       - script.execute: update_clock
-
-  - id: close_clock
-    then:
-      - globals.set: {id: in_clock, value: 'false'}
-      - script.execute: open_menu
 
   - id: update_clock
     then:
@@ -447,13 +440,17 @@ lvgl:
       bg_opa: COVER
       scrollbar_mode: "OFF"
       on_load:
+        - globals.set: {id: in_clock, value: 'true'}
         - lambda: |-
+            id(active_page).publish_state("Clock");
             int screen_width = lv_obj_get_width(lv_scr_act());
             lv_obj_set_style_text_font(
               id(lbl_clock),
               screen_width >= 400 ? id(font_clock) : id(font_val),
               0
             );
+      on_unload:
+        - globals.set: {id: in_clock, value: 'false'}
       widgets:
         - arc:
             id: arc_seconds
