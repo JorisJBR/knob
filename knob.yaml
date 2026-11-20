@@ -7,6 +7,8 @@ packages:
   todo_page:   !include src/pages/todo.yaml
   timer_page:  !include src/pages/timer.yaml
   menu_page:   !include src/pages/menu.yaml
+  alarm_page:  !include src/pages/alarm.yaml
+  weather_page:  !include src/pages/weather.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
@@ -16,6 +18,7 @@ substitutions:
   music_player_entity: media_player.woonkamer
   light_entity: light.spots_woonkamer
   todo_entity: todo.to_do
+  alarm_entity: alarm_control_panel.alarmo
   #calendar_entity: ?
   #camera_entity: ?
   #energy_page: ?
@@ -134,19 +137,30 @@ lvgl:
     then:
       - lvgl.resume:
   on_idle:
-    - timeout: 20s
-      then:
-        - light.turn_on: 
-            id: display_backlight
-            brightness: 50%
     - timeout: 30s
       then:
-        - lvgl.pause:
+        - if:
+            condition:
+              lambda: 'return id(alarm_state) != "triggered";'
+            then:
+              - script.execute: show_idle_clock
+              - script.execute: dim_clock_arcs
+              - light.turn_on:
+                  id: display_backlight
+                  brightness: 50%
+    - timeout: 120s
+      then:
+        - if:
+            condition:
+              lambda: 'return id(alarm_state) != "triggered";'
+            then:
+              - lvgl.pause:
   on_pause:
     then:
         - light.turn_off: display_backlight
   on_resume: 
     then:
+      - script.execute: wake_clock_arcs
       - light.turn_on:
           id: display_backlight
           brightness: 100%
@@ -307,7 +321,7 @@ touchscreen:
     update_interval: 25ms
     address: 0x15
     on_touch:
-      # - lvgl.resume:
+      - lvgl.resume:
       - lambda: |-
           if (id(swipe_start_x) < 0) {
               id(swipe_start_x) = touch.x;
@@ -315,20 +329,6 @@ touchscreen:
           }
           id(swipe_cur_x) = touch.x;
           id(swipe_cur_y) = touch.y;
-    on_release:
-      - lambda: |-
-          int dx = id(swipe_cur_x) - id(swipe_start_x);
-          int dy = id(swipe_cur_y) - id(swipe_start_y);
-          id(swipe_start_x) = -1;
-          if (abs(dx) < 50 || abs(dy) > abs(dx)) return;
-          bool on_clock = !id(in_menu) && !id(in_light) && !id(in_air)
-                      && !id(in_music) && !id(in_timer) && !id(in_todo)
-                      && !id(in_colorpicker);
-          if (on_clock && dx < 0) {
-              id(open_menu).execute();
-          } else if (id(in_menu) && (dx > 0 || dx < 0)) {
-              id(close_menu).execute();
-          }
 
 # Backlight toggle
 light:
@@ -354,10 +354,10 @@ sensor:
       inverted: true
     resolution: 2
     on_clockwise:
-      # - lvgl.resume:
+      - lvgl.resume:
       - script.execute: rotate_anticlockwise
     on_anticlockwise:
-      # - lvgl.resume:
+      - lvgl.resume:
       - script.execute: rotate_clockwise
 
 # Front button
@@ -379,7 +379,7 @@ binary_sensor:
           - OFF for at least 40ms
         invalid_cooldown: 150ms
         then:
-          # - lvgl.resume:
+          - lvgl.resume:
           - script.execute: double_click
 
       - timing:
@@ -387,7 +387,7 @@ binary_sensor:
           - OFF for at least 520ms
         invalid_cooldown: 150ms
         then:
-          # - lvgl.resume:
+          - lvgl.resume:
           - script.execute: single_click
 
 select:
@@ -404,19 +404,20 @@ select:
       - Color picker
       - Climate
       - Music
-      - Timer
       - To-do
       - Weather
+      - Alarm
     set_action:
+      - lvgl.resume:
       - lambda: |-
           if (x == "Menu") {
             const std::string page = id(active_page).current_option().str();
-            if (page == "Timer") id(menu_sel) = 0;
-            else if (page == "To-do") id(menu_sel) = 1;
-            else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
-            else if (page == "Climate") id(menu_sel) = 3;
-            else if (page == "Music") id(menu_sel) = 4;
-            else if (page == "Weather") id(menu_sel) = 5;
+            if (page == "To-do") id(menu_sel) = 0;
+            else if (page == "Light" || page == "Color picker") id(menu_sel) = 1;
+            else if (page == "Climate") id(menu_sel) = 2;
+            else if (page == "Music") id(menu_sel) = 3;
+            else if (page == "Weather") id(menu_sel) = 4;
+            else if (page == "Alarm") id(menu_sel) = 5;
             else if (page != "Menu") id(menu_sel) = 6;
             id(open_menu).execute();
           }
@@ -425,6 +426,6 @@ select:
           else if (x == "Color picker") id(open_colorpicker).execute();
           else if (x == "Climate") id(open_air).execute();
           else if (x == "Music") id(open_music).execute();
-          else if (x == "Timer") id(open_timer).execute();
           else if (x == "To-do") id(open_todo).execute();
           else if (x == "Weather") id(open_forecast).execute();
+          else if (x == "Alarm") id(open_alarm).execute();

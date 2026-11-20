@@ -1,0 +1,729 @@
+font:
+  - file:
+      type: web
+      url: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
+    id: font_alarm_icons
+    size: 96
+    bpp: 4
+    glyphs: "\U000F0594\U000F068A\U000F088E\U000F099D\U000F099F"
+
+  - file: "gfonts://DM+Sans"
+    id: font_alarm_button
+    size: 16
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
+
+  - file: "gfonts://DM+Sans"
+    id: font_alarm_pin
+    size: 20
+    bpp: 4
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 *()"
+
+color:
+  - id: col_alarm_bg
+    hex: "080B12"
+  - id: col_alarm_surface
+    hex: "171D2A"
+  - id: col_alarm_text
+    hex: "F1F5F9"
+  - id: col_alarm_dim
+    hex: "94A3B8"
+  - id: col_alarm_red
+    hex: "E65353"
+  - id: col_alarm_blue
+    hex: "3978A8"
+  - id: col_alarm_green
+    hex: "287B62"
+  - id: col_alarm_gold
+    hex: "95703A"
+
+globals:
+  - id: alarm_state
+    type: std::string
+    initial_value: '"unknown"'
+  - id: alarm_pin
+    type: std::string
+    initial_value: '""'
+  - id: alarm_code_required
+    type: bool
+    initial_value: 'false'
+  - id: alarm_pin_entry
+    type: bool
+    initial_value: 'false'
+  - id: alarm_selection
+    type: int
+    initial_value: '0'
+  - id: alarm_supported_features
+    type: int
+    initial_value: '0'
+  - id: in_alarm
+    type: bool
+    initial_value: 'false'
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_alarm_state
+    entity_id: ${alarm_entity}
+    on_value:
+      - then:
+          - lambda: 'id(alarm_state) = x;'
+          - script.execute: refresh_alarm_state
+          - if:
+              condition:
+                lambda: 'return id(alarm_state) == "triggered";'
+              then:
+                - script.execute: alarm_triggered
+
+  - platform: homeassistant
+    id: ha_alarm_code_format
+    entity_id: ${alarm_entity}
+    attribute: code_format
+    on_value:
+      - lambda: |-
+          id(alarm_code_required) = !x.empty() && x != "None" && x != "unknown";
+
+  - platform: homeassistant
+    id: ha_alarm_supported_features
+    entity_id: ${alarm_entity}
+    attribute: supported_features
+    on_value:
+      - lambda: |-
+          int features = 0;
+          for (char digit : x) {
+            if (digit < '0' || digit > '9') break;
+            features = features * 10 + digit - '0';
+          }
+          id(alarm_supported_features) = features;
+          const int modes[] = {1, 2, 4, 16, 32};
+          bool selected_supported = id(alarm_selection) == 0;
+          for (int mode : modes) {
+            if (id(alarm_selection) == mode && (features & mode)) {
+              selected_supported = true;
+            }
+          }
+          if (!selected_supported) id(alarm_selection) = 0;
+      - script.execute: refresh_alarm_selection
+
+script:
+  - id: refresh_alarm_state
+    then:
+      - lambda: |-
+          const std::string state = id(alarm_state);
+          const char *icon = "\U000F068A";
+          uint32_t color = 0x94A3B8;
+          if (state == "disarmed") {
+            icon = "\U000F099F";
+            color = 0x55C89A;
+          } else if (state == "triggered" || state == "pending") {
+            icon = "\U000F088E";
+            color = 0xE65353;
+          } else if (state == "armed_home") {
+            icon = "\U000F068A";
+            color = 0x55C89A;
+          } else if (state == "armed_night") {
+            icon = "\U000F0594";
+            color = 0xD4B76A;
+          } else if (state == "armed_away" || state == "arming") {
+            icon = "\U000F099D";
+            color = 0x5DABDD;
+          } else if (state == "armed_vacation" || state == "armed_custom_bypass") {
+            icon = "\U000F099D";
+            color = 0x5DABDD;
+          }
+          lv_label_set_text(id(lbl_alarm_state), icon);
+          lv_obj_set_style_text_color(id(lbl_alarm_state), lv_color_hex(color), LV_PART_MAIN);
+          id(refresh_alarm_selection).execute();
+          if (id(in_menu)) id(refresh_menu).execute();
+
+  - id: refresh_alarm_selection
+    then:
+      - lambda: |-
+          const int selection = id(alarm_selection);
+          const char *icon = "\U000F099F";
+          uint32_t color = 0x55C89A;
+          if (selection == 1) {
+            icon = "\U000F068A";
+            color = 0x55C89A;
+          } else if (selection == 2) {
+            icon = "\U000F099D";
+            color = 0x5DABDD;
+          } else if (selection == 4) {
+            icon = "\U000F0594";
+            color = 0xD4B76A;
+          } else if (selection == 16 || selection == 32) {
+            icon = "\U000F099D";
+            color = 0x95703A;
+          }
+          lv_label_set_text(id(lbl_alarm_selection), icon);
+          lv_obj_set_style_text_color(id(lbl_alarm_selection), lv_color_hex(color), LV_PART_MAIN);
+          lv_obj_t *pin_widgets[] = {
+            id(lbl_alarm_pin), id(btn_alarm_digit_1), id(btn_alarm_digit_2),
+            id(btn_alarm_digit_3), id(btn_alarm_digit_4), id(btn_alarm_digit_5),
+            id(btn_alarm_digit_6), id(btn_alarm_digit_7), id(btn_alarm_digit_8),
+            id(btn_alarm_digit_9), id(btn_alarm_clear), id(btn_alarm_digit_0),
+            id(btn_alarm_delete), id(lbl_alarm_submit)
+          };
+          for (lv_obj_t *widget : pin_widgets) {
+            if (id(alarm_pin_entry)) lv_obj_clear_flag(widget, LV_OBJ_FLAG_HIDDEN);
+            else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
+          }
+          if (id(alarm_pin_entry)) lv_obj_add_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_clear_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
+
+  - id: animate_alarm_selection
+    parameters:
+      direction: int
+    then:
+      - script.execute: refresh_alarm_selection
+      - lambda: |-
+          static lv_anim_t animation;
+          lv_anim_init(&animation);
+          lv_anim_set_var(&animation, id(lbl_alarm_selection));
+          lv_anim_set_values(&animation, 0, direction * 3600);
+          lv_anim_set_time(&animation, 260);
+          lv_anim_set_path_cb(&animation, lv_anim_path_ease_in_out);
+          lv_anim_set_exec_cb(&animation, [](void *obj, int32_t angle) {
+            lv_obj_set_style_transform_angle((lv_obj_t *)obj, angle, LV_PART_MAIN);
+          });
+          lv_anim_start(&animation);
+
+  - id: move_alarm_selection
+    parameters:
+      direction: int
+    then:
+      - lambda: |-
+          const int modes[] = {0, 1, 2, 4, 16, 32};
+          const int count = sizeof(modes) / sizeof(modes[0]);
+          int index = 0;
+          for (int i = 0; i < count; i++) {
+            if (modes[i] == id(alarm_selection)) index = i;
+          }
+          for (int step = 0; step < count; step++) {
+            index = (index + direction + count) % count;
+            const int candidate = modes[index];
+            if (candidate == 0 || (id(alarm_supported_features) & candidate)) {
+              id(alarm_selection) = candidate;
+              break;
+            }
+          }
+      - script.execute:
+          id: animate_alarm_selection
+          direction: !lambda 'return direction;'
+
+  - id: refresh_alarm_pin
+    then:
+      - lambda: |-
+          std::string masked = "PIN: ";
+          if (!id(alarm_pin).empty()) masked.append(id(alarm_pin).size(), '*');
+          lv_label_set_text(id(lbl_alarm_pin), masked.c_str());
+
+  - id: alarm_add_digit
+    parameters:
+      digit: int
+    then:
+      - lambda: |-
+          if (id(alarm_pin).size() < 8) {
+            id(alarm_pin).push_back(static_cast<char>('0' + digit));
+          }
+      - script.execute: refresh_alarm_pin
+
+  - id: alarm_clear_pin
+    then:
+      - lambda: 'id(alarm_pin).clear();'
+      - script.execute: refresh_alarm_pin
+
+  - id: alarm_delete_digit
+    then:
+      - lambda: |-
+          if (!id(alarm_pin).empty()) id(alarm_pin).pop_back();
+      - script.execute: refresh_alarm_pin
+
+  - id: open_alarm
+    then:
+      - lvgl.resume:
+      - light.turn_on:
+          id: display_backlight
+          brightness: 100%
+      - lambda: |-
+          id(in_menu) = false;
+          id(in_clock) = false;
+          id(in_weather) = false;
+          id(in_light) = false;
+          id(in_colorpicker) = false;
+          id(in_air) = false;
+          id(in_music) = false;
+          id(in_todo) = false;
+          id(in_alarm) = true;
+          id(alarm_pin).clear();
+          id(alarm_pin_entry) = false;
+          if (id(alarm_state) == "armed_home") id(alarm_selection) = 1;
+          else if (id(alarm_state) == "armed_away") id(alarm_selection) = 2;
+          else if (id(alarm_state) == "armed_night") id(alarm_selection) = 4;
+          else if (id(alarm_state) == "armed_custom_bypass") id(alarm_selection) = 16;
+          else if (id(alarm_state) == "armed_vacation") id(alarm_selection) = 32;
+          else id(alarm_selection) = 0;
+          if (id(alarm_selection) != 0 &&
+              !(id(alarm_supported_features) & id(alarm_selection))) {
+            id(alarm_selection) = 0;
+          }
+          id(active_page).publish_state("Alarm");
+      - lvgl.page.show: page_alarm
+      - script.execute: refresh_alarm_state
+      - script.execute: refresh_alarm_pin
+      - script.execute: refresh_alarm_selection
+
+  - id: close_alarm
+    then:
+      - globals.set:
+          id: in_alarm
+          value: 'false'
+      - script.execute: open_menu
+
+  - id: alarm_triggered
+    then:
+      - script.execute: open_alarm
+
+  - id: alarm_arm_away
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_away
+          data:
+            entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_home
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_home
+          data:
+            entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_night
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_night
+          data:
+            entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_confirm_selection
+    then:
+      - if:
+          condition:
+            lambda: 'return id(alarm_selection) == 0;'
+          then:
+            - if:
+                condition:
+                  lambda: 'return id(alarm_code_required) && !id(alarm_pin_entry);'
+                then:
+                  - globals.set:
+                      id: alarm_pin_entry
+                      value: 'true'
+                  - script.execute: refresh_alarm_selection
+                  - script.execute: refresh_alarm_pin
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return !id(alarm_code_required) || !id(alarm_pin).empty();'
+                      then:
+                        - script.execute: alarm_disarm
+          else:
+            - if:
+                condition:
+                  lambda: 'return id(alarm_selection) == 1;'
+                then:
+                  - script.execute: alarm_arm_home
+                else:
+                  - if:
+                      condition:
+                        lambda: 'return id(alarm_selection) == 2;'
+                      then:
+                        - script.execute: alarm_arm_away
+                      else:
+                        - if:
+                            condition:
+                              lambda: 'return id(alarm_selection) == 4;'
+                            then:
+                              - script.execute: alarm_arm_night
+                            else:
+                              - if:
+                                  condition:
+                                    lambda: 'return id(alarm_selection) == 16;'
+                                  then:
+                                    - script.execute: alarm_arm_custom_bypass
+                                  else:
+                                    - script.execute: alarm_arm_vacation
+
+  - id: alarm_arm_custom_bypass
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_custom_bypass
+          data:
+            entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_arm_vacation
+    then:
+      - homeassistant.service:
+          service: alarm_control_panel.alarm_arm_vacation
+          data:
+            entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+
+  - id: alarm_disarm
+    then:
+      - if:
+          condition:
+            lambda: 'return id(alarm_code_required);'
+          then:
+            - homeassistant.service:
+                service: alarm_control_panel.alarm_disarm
+                data:
+                  entity_id: ${alarm_entity}
+                  code: !lambda 'return id(alarm_pin);'
+          else:
+            - homeassistant.service:
+                service: alarm_control_panel.alarm_disarm
+                data:
+                  entity_id: ${alarm_entity}
+      - script.execute: alarm_clear_pin
+      - globals.set:
+          id: alarm_pin_entry
+          value: 'false'
+      - script.execute: refresh_alarm_selection
+
+lvgl:
+  pages:
+    - id: page_alarm
+      bg_color: col_alarm_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 3%
+            text: "ALARM"
+            text_font: font_lbl
+            text_color: col_alarm_text
+
+        - obj:
+            align: TOP_RIGHT
+            x: -7%
+            y: 3%
+            width: 17%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: close_alarm
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "MENU"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - label:
+            id: lbl_alarm_state
+            align: CENTER
+            y: -34%
+            text: "\U000F068A"
+            text_font: font_alarm_icons
+            text_color: col_alarm_dim
+
+        - label:
+            id: lbl_alarm_selection
+            align: CENTER
+            y: -6%
+            text: "\U000F099F"
+            text_font: font_alarm_icons
+            text_color: col_alarm_green
+
+        - label:
+            id: lbl_alarm_pin
+            align: CENTER
+            y: -27%
+            hidden: true
+            text: "PIN: "
+            text_font: font_alarm_pin
+            text_color: col_alarm_dim
+
+        - obj:
+            id: btn_alarm_digit_1
+            align: CENTER
+            x: -18%
+            y: -17%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 1
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "1"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_2
+            align: CENTER
+            y: -17%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 2
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "2"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_3
+            align: CENTER
+            x: 18%
+            y: -17%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 3
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "3"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_4
+            align: CENTER
+            x: -18%
+            y: -8%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 4
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "4"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_5
+            align: CENTER
+            y: -8%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 5
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "5"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_6
+            align: CENTER
+            x: 18%
+            y: -8%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 6
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "6"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_7
+            align: CENTER
+            x: -18%
+            y: 1%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 7
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "7"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_8
+            align: CENTER
+            y: 1%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 8
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "8"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_digit_9
+            align: CENTER
+            x: 18%
+            y: 1%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 9
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "9"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_clear
+            align: CENTER
+            x: -18%
+            y: 10%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_clear_pin
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "CLR"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - obj:
+            id: btn_alarm_digit_0
+            align: CENTER
+            y: 10%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute:
+                  id: alarm_add_digit
+                  digit: 0
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "0"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_text
+
+        - obj:
+            id: btn_alarm_delete
+            align: CENTER
+            x: 18%
+            y: 10%
+            hidden: true
+            width: 16%
+            height: 8%
+            radius: 8
+            bg_color: col_alarm_surface
+            border_width: 0
+            clickable: true
+            on_click:
+              - script.execute: alarm_delete_digit
+            widgets:
+              - label:
+                  align: CENTER
+                  text: "DEL"
+                  text_font: font_alarm_button
+                  text_color: col_alarm_dim
+
+        - label:
+            id: lbl_alarm_submit
+            align: CENTER
+            y: 22%
+            hidden: true
+            text: "PRESS DIAL TO DISARM"
+            text_font: font_alarm_button
+            text_color: col_alarm_dim

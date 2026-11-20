@@ -128,6 +128,10 @@ script:
                   id(close_menu).execute();
                   return;
                 }
+                if (id(in_alarm)) {
+                  id(close_alarm).execute();
+                  return;
+                }
                 if (id(in_clock)){
                   id(close_clock).execute();
                   return;
@@ -150,10 +154,6 @@ script:
                   id(open_menu).execute();
                   return;
                 }
-                if (id(in_timer)) {
-                  id(close_timer).execute();
-                  return;
-                }
                 if (id(in_todo)) {
                   id(in_todo) = false;
                   id(open_menu).execute();
@@ -167,16 +167,16 @@ script:
     then:
       - if:
           condition:
+            lambda: 'return id(in_alarm) && !id(button_debounce);'
+          then:
+            - globals.set: {id: button_debounce, value: 'true'}
+            - script.execute: alarm_confirm_selection
+      - if:
+          condition:
             lambda: 'return id(in_menu) && !id(button_debounce);'
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: menu_confirm
-      - if:
-          condition:
-            lambda: 'return id(in_timer) && !id(in_menu) && !id(button_debounce);'
-          then:
-            - globals.set: {id: button_debounce, value: 'true'}
-            - script.execute: timer_toggle
       - if:
           condition:
             lambda: 'return id(in_light) && !id(in_menu) && !id(button_debounce);'
@@ -220,6 +220,11 @@ script:
     then:
       - if:
           condition:
+            lambda: 'return id(in_alarm) && !id(alarm_pin_entry);'
+          then:
+            - script.execute: {id: move_alarm_selection, direction: -1}
+      - if:
+          condition:
             lambda: 'return id(in_colorpicker);'
           then:
             - script.execute: light_hue_down
@@ -228,6 +233,11 @@ script:
             lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
           then:
             - script.execute: light_brightness_down
+      - if:
+          condition:
+            lambda: 'return id(in_clock) && !id(in_menu);'
+          then:
+            - script.execute: timer_encoder_down
       - if:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
@@ -254,14 +264,14 @@ script:
             lambda: 'return id(in_todo);'
           then:
             - script.execute: select_todo_previous
-      - if:
-          condition:
-            lambda: 'return id(in_timer);'
-          then:
-            - script.execute: timer_encoder_down
 
   - id: rotate_clockwise
     then:
+      - if:
+          condition:
+            lambda: 'return id(in_alarm) && !id(alarm_pin_entry);'
+          then:
+            - script.execute: {id: move_alarm_selection, direction: 1}
       - if:
           condition:
             lambda: 'return id(in_colorpicker);'
@@ -269,9 +279,14 @@ script:
             - script.execute: light_hue_up
       - if:
           condition:
-            lambda: 'return (id(in_light) || id(in_clock)) && !id(in_colorpicker) && !id(in_menu);'
+            lambda: 'return id(in_light) && !id(in_colorpicker) && !id(in_menu);'
           then:
             - script.execute: light_brightness_up
+      - if:
+          condition:
+            lambda: 'return id(in_clock) && !id(in_menu);'
+          then:
+            - script.execute: timer_encoder_up
       - if:
           condition:
             lambda: 'return id(in_air) && !id(in_menu);'
@@ -298,11 +313,6 @@ script:
             lambda: 'return id(in_todo);'
           then:
             - script.execute: select_todo_next
-      - if:
-          condition:
-            lambda: 'return id(in_timer);'
-          then:
-            - script.execute: timer_encoder_up
 
 lvgl:
   top_layer:
@@ -345,7 +355,7 @@ lvgl:
                         arc_width: 3
 
             - label:
-                text: "\U000F062E"
+                text: "\U000F07D0"
                 text_font: font_mdi_icons
                 text_color: col_blue
                 align: CENTER

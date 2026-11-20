@@ -23,7 +23,7 @@ font:
     id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F06E8\U000F0756\U000F075A\U000F081D\U000F0902\U000F0E4F\U000F1472\U000F1473\U000F174A"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F068A\U000F06E8\U000F0756\U000F075A\U000F07D0\U000F081D\U000F0902\U000F0954\U000F0E4F\U000F1472\U000F1473\U000F174A"
 
 color:
   - id: col_menu_bg
@@ -42,7 +42,7 @@ color:
 globals:
   - id: menu_sel
     type: int
-    initial_value: '0'
+    initial_value: '6'
   - id: in_menu
     type: bool
     initial_value: 'false'
@@ -59,12 +59,12 @@ script:
       - lambda: |-
           const std::string page = id(active_page).current_option().str();
           if (page == "Menu") {
-          } else if (page == "Timer") id(menu_sel) = 0;
-          else if (page == "To-do") id(menu_sel) = 1;
-          else if (page == "Light" || page == "Color picker") id(menu_sel) = 2;
-          else if (page == "Climate") id(menu_sel) = 3;
-          else if (page == "Music") id(menu_sel) = 4;
-          else if (page == "Weather") id(menu_sel) = 5;
+          } else if (page == "To-do") id(menu_sel) = 0;
+          else if (page == "Light" || page == "Color picker") id(menu_sel) = 1;
+          else if (page == "Climate") id(menu_sel) = 2;
+          else if (page == "Music") id(menu_sel) = 3;
+          else if (page == "Weather") id(menu_sel) = 4;
+          else if (page == "Alarm") id(menu_sel) = 5;
           else id(menu_sel) = 6;
       - globals.set: {id: in_menu, value: 'true'}
       - script.execute: refresh_menu
@@ -88,12 +88,12 @@ script:
       - lambda: |-
           ESP_LOGI("menu", "selected item %d", id(menu_sel));
           int sel = id(menu_sel);
-          if      (sel == 0) { id(open_timer).execute(); }
-          else if (sel == 1) { id(open_todo).execute(); }
-          else if (sel == 2) { id(open_light).execute(); }
-          else if (sel == 3) { id(open_air).execute(); }
-          else if (sel == 4) { id(open_music).execute(); }
-          else if (sel == 5) { id(open_forecast).execute(); }
+          if      (sel == 0) { id(open_todo).execute(); }
+          else if (sel == 1) { id(open_light).execute(); }
+          else if (sel == 2) { id(open_air).execute(); }
+          else if (sel == 3) { id(open_music).execute(); }
+          else if (sel == 4) { id(open_forecast).execute(); }
+          else if (sel == 5) { id(open_alarm).execute(); }
           else if (sel == 6) { id(open_clock).execute(); }
           else               { id(close_menu).execute(); }
 
@@ -168,7 +168,7 @@ script:
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(420 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -183,6 +183,11 @@ script:
 
                     lv_obj_set_width(slots[i], w);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
+                    int title_x = mix > 760
+                      ? lv_map(mix, 760, 1000, (int)(76 * scale), (int)(108 * scale))
+                      : (int)(76 * scale);
+                    lv_obj_set_x(title_lbls[i], title_x);
+                    lv_obj_set_width(title_lbls[i], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {
@@ -209,7 +214,7 @@ script:
                   lv_obj_add_flag(id(menu_arrow), LV_OBJ_FLAG_HIDDEN);
                 });
                 lv_anim_set_ready_cb(&a, [](lv_anim_t * anim) {
-                  int n = 6;
+                  int n = 7;
                   id(menu_sel) = ((id(menu_sel) - 1) % n + n) % n;
                   id(refresh_menu).execute();
                   id(menu_animating) = false;
@@ -287,7 +292,7 @@ script:
                     int pill_shift = 0;
 
                     if (mix > 760) {
-                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(336 * scale));
+                      w = lv_map(mix, 760, 1000, (int)(80 * scale), (int)(420 * scale));
                     }
                     if (mix > 840) {
                       opa_text = lv_map(mix, 840, 1000, 0, 510);
@@ -296,12 +301,17 @@ script:
                       opa_bg = lv_map(mix, 820, 1000, 0, 510);
                     }
                     if (mix > 760) {
-                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(128 * scale));
+                      pill_shift = lv_map(mix, 760, 1000, 0, (int)(108 * scale));
                     }
                     const int opa_icon = lv_map(mix, 0, 1000, 192, 510);
 
                     lv_obj_set_width(slots[i], w);
                     lv_obj_set_style_bg_opa(slots[i], opa_bg, LV_PART_MAIN);
+                    int title_x = mix > 760
+                      ? lv_map(mix, 760, 1000, (int)(76 * scale), (int)(108 * scale))
+                      : (int)(76 * scale);
+                    lv_obj_set_x(title_lbls[i], title_x);
+                    lv_obj_set_width(title_lbls[i], (int)fmaxf(24.0f, w - title_x - 12.0f * scale));
 
                     lv_obj_set_pos(slots[i], (int)(x - 28.0f * scale - screen_w * 0.5f + pill_shift), (int)(y - (i == 2 ? 56.0f : 40.0f) * scale));
                     if (i == 2) {
@@ -369,12 +379,11 @@ script:
           const int OFFSETS[5] = {-2, -1, 0, 1, 2};
 
           std::string titles[7] = {
-            "Timer", "To-do",
+            "To-do",
             id(ha_light_fname).state.empty() ? "Light" : id(ha_light_fname).state,
             id(ha_air_fname).state.empty() ? "Climate" : id(ha_air_fname).state,
             id(media_player_fname).state.empty() ? "Music" : id(media_player_fname).state,
-            "Weather",
-            "Home"
+            "Weather", "Alarm", "Clock"
           };
 
           char ac_temperature[16];
@@ -393,39 +402,48 @@ script:
             todo_summary = std::to_string(todo_done_count) + " done / " +
                            std::to_string(todo_open_count) + " open";
           }
+          auto clock_time = id(ha_time).now();
+          char clock_time_text[6];
+          if (clock_time.is_valid()) {
+            snprintf(clock_time_text, sizeof(clock_time_text), "%02d:%02d", clock_time.hour, clock_time.minute);
+          } else {
+            snprintf(clock_time_text, sizeof(clock_time_text), "--:--");
+          }
           std::string subtitles[7] = {
-            "5 minutes",
             todo_summary,
-            std::to_string(id(light_brightness)) + " %",
+            id(light_on)
+              ? std::to_string(id(light_brightness)) + " %"
+              : std::string("Off"),
             id(ha_air_hvac_mode).state + " - " + ac_temperature + "C",
             id(media_player_status).state + " - " + id(media_player_title).state,
             "Hourly forecast",
-            std::string(home_temperature) + "C"
+            id(alarm_state),
+            std::string(clock_time_text)
           };
           
           const char* ICONS[7] = {
-            "\U000F051B", "\U000F0756", "\U000F06E8",
-            "\U000F001B", "\U000F075A", "\U000F0595", "\U000F02DC"
+            "\U000F0756", "\U000F06E8", "\U000F001B",
+            "\U000F075A", "\U000F0595", "\U000F068A", "\U000F0954"
           };
-          // Per-item accent colors: Timer, To-do, Lights, AC, Music, Weather, Home
+          // Per-item accent colors: To-do, Lights, AC, Music, Weather, Alarm, Clock
           const uint32_t ACCENT_COLORS[7] = {
-            0xFB923C,  // Timer   - orange
             0x4ADE80,  // To-do   - green
             0xFDC003,  // Lights  - yellow
             0x5ABBFD,  // AC      - ice blue
             0xA792E8,  // Music   - purple
             0x5ECAD3,  // Weather - cyan
-            0x576BFE   // Home    - blue
+            0xE65353,  // Alarm   - red
+            0x576BFE   // Clock   - blue
           };
           // Pill bg: darker version of accent
           const uint32_t PILL_COLORS[7] = {
-            0x2A1200,  // Timer
             0x0A2A14,  // To-do
             0x2A1E00,  // Lights
             0x001A2A,  // AC
             0x150A2A,  // Music
             0x08262A,  // Weather
-            0x0D1537   // Home
+            0x2A0A0A,  // Alarm
+            0x0D1537   // Clock
           };
           int sel = id(menu_sel);
 
@@ -618,7 +636,7 @@ lvgl:
                               id: slot_far_up_icon
                               align: LEFT_MID
                               x: 4
-                              text: "\U000F051B"
+                              text: "\U000F0756"
                               text_font: font_mdi_icons
                               text_color: 0xFFFFFF
                           - label:
@@ -627,7 +645,7 @@ lvgl:
                               x: 76
                               text_font: font_menu_item
                               text_color: col_menu_dim
-                              text: "Timer"
+                              text: "To-do"
                               text_opa: 25%
 
                     - obj:
@@ -783,8 +801,8 @@ lvgl:
                   scrollbar_mode: "OFF"
                   widgets:
                     - label:
-                        id: menu_home_icon
-                        text: "\U000F02DC"
+                        id: menu_clock_icon
+                        text: "\U000F0954"
                         text_font: font_mdi_icons
                         text_color: col_menu_accent
                         align: CENTER
@@ -880,7 +898,6 @@ lvgl:
                   border_width: 0
                   clickable: false
                   scrollbar_mode: "OFF"
-
               - obj:
                   id: menu_arrow
                   align: RIGHT_MID

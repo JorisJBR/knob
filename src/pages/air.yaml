@@ -439,39 +439,15 @@ lvgl:
                   scrollbar_mode: "OFF"
 
               - arc:
-                  align: CENTER
-                  x: 0
-                  y: 0
-                  width: 95%
-                  height: 95%
-                  start_angle: 45
-                  end_angle: 315
-                  min_value: 0
-                  max_value: 100
-                  value: 100
-                  arc_color: 0x1A1D28
-                  arc_opa: COVER
-                  arc_width: 4
-                  arc_rounded: true
-                  adjustable: false
-                  clickable: false
-                  indicator:
-                    arc_opa: TRANSP
-                  knob:
-                    bg_opa: TRANSP
-                    border_width: 0
-                    width: 0
-                    height: 0
-
-              - arc:
                   id: air_set_arc
                   align: CENTER
                   x: 0
                   y: 0
                   width: 85%
                   height: 85%
-                  start_angle: 45
-                  end_angle: 315
+                  rotation: 270
+                  start_angle: 0
+                  end_angle: 270
                   min_value: 34
                   max_value: 52
                   value: 40
@@ -597,7 +573,7 @@ lvgl:
               - label:
                   id: lbl_air_temp
                   align: CENTER
-                  y: -10%
+                  y: -18%
                   text: "24"
                   text_font: font_air_temp
                   text_color: 0xFFFFFF
@@ -606,8 +582,8 @@ lvgl:
               - label:
                   id: lbl_air_temp_degree
                   align: CENTER
-                  x: 10%
-                  y: -14%
+                  x: 20%
+                  y: -22%
                   text: "°"
                   text_font: font_air_degree
                   text_color: 0xFFFFFF
@@ -616,7 +592,7 @@ lvgl:
               - label:
                   id: lbl_air_info
                   align: CENTER
-                  y: 2%
+                  y: 0%
                   text: "Temp 28\xc2\xb0  Humid 60%"
                   text_font: font_air_label
                   text_color: 0x5A7598
