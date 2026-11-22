@@ -38,5 +38,5 @@ The following entity types should be supported:
 - [x] Todo: A page showing a todo list entity
   - Rotate the dial to highlight a todo-item, and mark it as done/not done on single press
 - [x] Alarm: Select Disarmed, Night, or Away with the dial; touch PIN entry appears only when Alarmo requires a disarm code
-- [ ] Energy: A page showing the current energy price & usage
+- [x] Energy: A page showing the current energy price & usage
 

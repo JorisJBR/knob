@@ -18,8 +18,8 @@ text_sensor:
     attribute: friendly_name
 
 http_request:
-  - id: camera_http_request
-    timeout: 10s
+  id: camera_http_request
+  timeout: 10s
 
 image:
   - platform: online_image

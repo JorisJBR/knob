@@ -9,6 +9,7 @@ packages:
   alarm_page:  !include src/pages/alarm.yaml
   weather_page:  !include src/pages/weather.yaml
   camera_page:   !include src/pages/camera.yaml
+  energy_page:   !include src/pages/energy.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
@@ -22,6 +23,12 @@ substitutions:
   camera_entity: camera.front_door
   camera_snapshot_url: http://homeassistant.local:8123/api/camera_proxy/${camera_entity}
   camera_auth_header: ""
+  energy_price_entity: sensor.energy_price
+  energy_usage_entity: sensor.energy_usage
+  energy_usage_today_entity: sensor.energy_usage_today
+  energy_currency: "€"
+  energy_usage_unit: "kW"
+  energy_today_unit: "kWh"
   #calendar_entity: ?
   #energy_page: ?
 
@@ -400,6 +407,7 @@ select:
       - Weather
       - Alarm
       - Camera
+      - Energy
     set_action:
       - lvgl.resume:
       - lambda: |-
@@ -411,3 +419,4 @@ select:
           else if (x == "Weather") id(open_forecast).execute();
           else if (x == "Alarm") id(open_alarm).execute();
           else if (x == "Camera") id(open_camera).execute();
+          else if (x == "Energy") id(open_energy).execute();
