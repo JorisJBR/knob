@@ -18,12 +18,11 @@ text_sensor:
     attribute: friendly_name
 
 http_request:
-  - id: camera_http_request
-    timeout: 10s
+  id: camera_http_request
+  timeout: 10s
 
-image:
-  - platform: online_image
-    id: camera_snapshot
+online_image:
+  - id: camera_snapshot
     http_request_id: camera_http_request
     url: ${camera_snapshot_url}
     format: JPEG
@@ -36,11 +35,12 @@ image:
       - lambda: |-
           id(camera_last_refresh) = "Snapshot ready";
           lv_label_set_text(id(lbl_camera_status), "Snapshot ready");
-      - lvgl.widget.redraw:
+      - lvgl.widget.redraw: img_camera_snapshot
     on_error:
       - lambda: |-
           id(camera_last_refresh) = "Snapshot unavailable";
           lv_label_set_text(id(lbl_camera_status), "Snapshot unavailable");
+
 
 script:
   - id: open_camera
