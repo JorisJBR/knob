@@ -1,0 +1,149 @@
+globals:
+  - id: in_camera
+    type: bool
+    initial_value: 'false'
+
+  - id: camera_last_refresh
+    type: std::string
+    initial_value: '"Loading"'
+
+  - id: camera_auth_header
+    type: std::string
+    initial_value: '"${camera_auth_header}"'
+
+text_sensor:
+  - platform: homeassistant
+    id: ha_camera_name
+    entity_id: ${camera_entity}
+    attribute: friendly_name
+
+http_request:
+  id: camera_http_request
+  timeout: 10s
+
+online_image:
+  - id: camera_snapshot
+    http_request_id: camera_http_request
+    url: ${camera_snapshot_url}
+    format: JPEG
+    type: RGB565
+    resize: 400x400
+    update_interval: never
+    request_headers:
+      Authorization: !lambda 'return id(camera_auth_header).empty() ? std::string("") : std::string("Bearer ") + id(camera_auth_header);'
+    on_download_finished:
+      - lambda: |-
+          id(camera_last_refresh) = "Snapshot ready";
+          lv_label_set_text(id(lbl_camera_status), "Snapshot ready");
+      - lvgl.widget.redraw: img_camera_snapshot
+    on_error:
+      - lambda: |-
+          id(camera_last_refresh) = "Snapshot unavailable";
+          lv_label_set_text(id(lbl_camera_status), "Snapshot unavailable");
+
+
+script:
+  - id: open_camera
+    then:
+      - globals.set: {id: in_camera, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Camera");'
+      - lvgl.page.show:
+          id: page_camera
+          animation: MOVE_LEFT
+      - lvgl.label.update:
+          id: lbl_camera_status
+          text: "Loading snapshot"
+      - online_image.set_url:
+          id: camera_snapshot
+          url: ${camera_snapshot_url}
+          update: true
+
+  - id: close_camera
+    then:
+      - globals.set: {id: in_camera, value: 'false'}
+      - script.execute: open_menu
+
+  - id: refresh_camera
+    then:
+      - if:
+          condition:
+            lambda: 'return id(in_camera);'
+          then:
+            - lvgl.label.update:
+                id: lbl_camera_status
+                text: "Refreshing snapshot"
+            - online_image.set_url:
+                id: camera_snapshot
+                url: ${camera_snapshot_url}
+                update: true
+
+interval:
+  - interval: 10s
+    then:
+      - script.execute: refresh_camera
+
+lvgl:
+  pages:
+    - id: page_camera
+      bg_color: col_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      on_load:
+        - lambda: |-
+            lv_label_set_text(
+              id(lbl_camera_title),
+              id(ha_camera_name).state.empty()
+                ? "Camera"
+                : id(ha_camera_name).state.c_str()
+            );
+      widgets:
+        - obj:
+            align: CENTER
+            width: 92%
+            height: 92%
+            radius: 50%
+            clip_corner: true
+            bg_color: 0x101623
+            border_width: 0
+            pad_all: 0
+            scrollbar_mode: "OFF"
+            clickable: true
+            on_press:
+              - script.execute: refresh_camera
+            widgets:
+              - image:
+                  id: img_camera_snapshot
+                  align: CENTER
+                  src: camera_snapshot
+                  antialias: true
+              - label:
+                  id: lbl_camera_title
+                  align: TOP_MID
+                  y: 7%
+                  width: 80%
+                  text_align: CENTER
+                  text_font: font_lbl
+                  text_color: 0xFFFFFF
+                  text: "Camera"
+                  bg_opa: COVER
+                  bg_color: 0x101623
+                  radius: 12
+                  pad_left: 12
+                  pad_right: 12
+                  pad_top: 4
+                  pad_bottom: 4
+              - label:
+                  id: lbl_camera_status
+                  align: BOTTOM_MID
+                  y: -7%
+                  text_font: font_lbl_s
+                  text_color: 0xD7DEEA
+                  text: "Loading snapshot"
+                  bg_opa: COVER
+                  bg_color: 0x101623
+                  radius: 12
+                  pad_left: 12
+                  pad_right: 12
+                  pad_top: 4
+                  pad_bottom: 4

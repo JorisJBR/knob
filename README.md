@@ -33,8 +33,8 @@ The following entity types should be supported:
   - Rotate the dial to change the volume shown by an arc on the display
   - Single press to play/pause
   - Previous/next song buttons on the touchscreen
-- [ ] Camera: A page showing the live view (or snapshot if not supported) of a camera entity
-- Calendar: A page showing the next upcoming event(s) on one or multiple calendar entities
+- [x] Camera: A page showing the live view (or snapshot if not supported) of a camera entity
+- [ ] Calendar: A page showing the next upcoming event(s) on one or multiple calendar entities
 - [x] Todo: A page showing a todo list entity
   - Rotate the dial to highlight a todo-item, and mark it as done/not done on single press
 - [x] Alarm: Select Disarmed, Night, or Away with the dial; touch PIN entry appears only when Alarmo requires a disarm code

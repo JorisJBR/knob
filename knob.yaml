@@ -5,10 +5,10 @@ packages:
   air_page:    !include src/pages/air.yaml
   music_page:  !include src/pages/music.yaml
   todo_page:   !include src/pages/todo.yaml
-  timer_page:  !include src/pages/timer.yaml
   menu_page:   !include src/pages/menu.yaml
   alarm_page:  !include src/pages/alarm.yaml
   weather_page:  !include src/pages/weather.yaml
+  camera_page:   !include src/pages/camera.yaml
 
 # Change these to match your Home Assistant instance before flashing.
 substitutions:
@@ -19,8 +19,10 @@ substitutions:
   light_entity: light.spots_woonkamer
   todo_entity: todo.to_do
   alarm_entity: alarm_control_panel.alarmo
+  camera_entity: camera.front_door
+  camera_snapshot_url: http://homeassistant.local:8123/api/camera_proxy/${camera_entity}
+  camera_auth_header: ""
   #calendar_entity: ?
-  #camera_entity: ?
   #energy_page: ?
 
 # Hardware specific?
@@ -397,6 +399,7 @@ select:
       - To-do
       - Weather
       - Alarm
+      - Camera
     set_action:
       - lvgl.resume:
       - lambda: |-
@@ -407,3 +410,4 @@ select:
           else if (x == "To-do") id(open_todo).execute();
           else if (x == "Weather") id(open_forecast).execute();
           else if (x == "Alarm") id(open_alarm).execute();
+          else if (x == "Camera") id(open_camera).execute();
