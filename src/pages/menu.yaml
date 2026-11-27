@@ -3,19 +3,19 @@ font:
     id: font_menu_item
     size: 30
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/:"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_center
     size: 34
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/:"
 
   - file: "gfonts://DM+Sans"
     id: font_menu_sub
     size: 18
     bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/"
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .-_%/:"
 
   - file:
       type: web
@@ -23,7 +23,7 @@ font:
     id: font_mdi_icons
     size: 48
     bpp: 4
-    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F068A\U000F06E8\U000F0756\U000F075A\U000F07D0\U000F081D\U000F0902\U000F0954\U000F0E4F\U000F1472\U000F1473\U000F174A\U000F0100"
+    glyphs: "\U000F001B\U000F0210\U000F02DC\U000F0335\U000F0387\U000F03D8\U000F0425\U000F04E1\U000F051B\U000F0590\U000F0591\U000F0592\U000F0593\U000F0594\U000F0595\U000F0596\U000F0597\U000F0598\U000F0599\U000F059D\U000F059E\U000F059F\U000F062E\U000F068A\U000F06E8\U000F0756\U000F075A\U000F07D0\U000F081D\U000F0902\U000F0954\U000F0E4F\U000F1472\U000F1473\U000F174A\U000F0100\U000F0D3E"
 
 color:
   - id: col_menu_bg
@@ -379,7 +379,11 @@ script:
             id(ha_light_fname).state.empty() ? "Light" : id(ha_light_fname).state,
             id(ha_air_fname).state.empty() ? "Climate" : id(ha_air_fname).state,
             id(media_player_fname).state.empty() ? "Music" : id(media_player_fname).state,
-            "Weather", "Alarm", "Camera", "Energy", "Clock"
+            "Weather", 
+            "Alarm", 
+            id(ha_camera_name).state.empty() ? "Camera" : id(ha_camera_name).state, 
+            "Energy", 
+            "Clock"
           };
 
           char ac_temperature[16];
@@ -409,7 +413,7 @@ script:
           if (isnan(id(energy_usage))) {
             snprintf(energy_summary, sizeof(energy_summary), "Live usage unavailable");
           } else {
-            snprintf(energy_summary, sizeof(energy_summary), "%.2f kW", id(energy_usage));
+            snprintf(energy_summary, sizeof(energy_summary), "%.0f w", id(energy_usage));
           }
           std::string subtitles[9] = {
             todo_summary,
@@ -428,7 +432,7 @@ script:
           const char* ICONS[9] = {
             "\U000F0756", "\U000F06E8", "\U000F001B",
             "\U000F075A", "\U000F0595", "\U000F068A",
-            "\U000F0100", "\U000F1472", "\U000F0954"
+            "\U000F0100", "\U000F0D3E", "\U000F0954"
           };
           // Per-item accent colors: To-do, Lights, AC, Music, Weather, Alarm, Camera, Clock
           const uint32_t ACCENT_COLORS[9] = {

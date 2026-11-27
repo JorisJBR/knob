@@ -293,7 +293,7 @@ lvgl:
         - lambda: |-
             int screen_width = lv_obj_get_width(lv_scr_act());
             lv_obj_set_style_text_font(id(lbl_music_title),
-              screen_width >= 400 ? id(font_music_title) : id(font_val), 0);
+              screen_width >= 400 ? id(font_music_title) : id(font_l), 0);
       widgets:
         - obj:
             align: TOP_LEFT

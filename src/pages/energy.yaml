@@ -8,9 +8,14 @@ globals:
   - id: energy_usage
     type: float
     initial_value: 'NAN'
-  - id: energy_usage_today
-    type: float
-    initial_value: 'NAN'
+
+font:
+  - file: "gfonts://DM+Sans"
+    id: font_energy_lbl
+    size: 24
+    bpp: 4
+    glyphs: >-
+      !"#$%&'()*+,-./ 0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~°€
 
 script:
   - id: open_energy
@@ -26,7 +31,7 @@ script:
           if (isnan(id(energy_price))) {
             lv_label_set_text(id(lbl_energy_price), "--");
           } else {
-            snprintf(value, sizeof(value), "%.3f ${energy_currency}", id(energy_price));
+            snprintf(value, sizeof(value), "%.2f ${energy_currency}", id(energy_price));
             lv_label_set_text(id(lbl_energy_price), value);
           }
           if (isnan(id(energy_usage))) {
@@ -34,12 +39,6 @@ script:
           } else {
             snprintf(value, sizeof(value), "%.2f ${energy_usage_unit}", id(energy_usage));
             lv_label_set_text(id(lbl_energy_usage), value);
-          }
-          if (isnan(id(energy_usage_today))) {
-            lv_label_set_text(id(lbl_energy_today), "--");
-          } else {
-            snprintf(value, sizeof(value), "%.2f ${energy_today_unit}", id(energy_usage_today));
-            lv_label_set_text(id(lbl_energy_today), value);
           }
 
 sensor:
@@ -69,19 +68,6 @@ sensor:
             lv_label_set_text(id(lbl_energy_usage), value);
           }
 
-  - platform: homeassistant
-    id: ha_energy_usage_today
-    entity_id: ${energy_usage_today_entity}
-    internal: true
-    on_value:
-      - lambda: |-
-          id(energy_usage_today) = x;
-          if (id(in_energy)) {
-            char value[32];
-            snprintf(value, sizeof(value), "%.2f ${energy_today_unit}", x);
-            lv_label_set_text(id(lbl_energy_today), value);
-          }
-
 lvgl:
   pages:
     - id: page_energy
@@ -93,7 +79,7 @@ lvgl:
             align: TOP_MID
             y: 6%
             text: "ENERGY"
-            text_font: font_lbl
+            text_font: font_l
             text_color: col_text_lbl
 
         - obj:
@@ -110,14 +96,14 @@ lvgl:
               - label:
                   align: TOP_LEFT
                   text: "Current price"
-                  text_font: font_lbl_s
+                  text_font: font_s
                   text_color: col_text_lbl
               - label:
                   id: lbl_energy_price
                   align: LEFT_MID
                   y: 12
                   text: "--"
-                  text_font: font_clock
+                  text_font: font_energy_lbl
                   text_color: 0xFFC76A
 
         - obj:
@@ -134,35 +120,12 @@ lvgl:
               - label:
                   align: TOP_LEFT
                   text: "Live usage"
-                  text_font: font_lbl_s
+                  text_font: font_s
                   text_color: col_text_lbl
               - label:
                   id: lbl_energy_usage
                   align: LEFT_MID
                   y: 12
                   text: "--"
-                  text_font: font_clock
+                  text_font: font_energy_lbl
                   text_color: 0x79D7FF
-
-        - obj:
-            align: BOTTOM_MID
-            y: -7%
-            width: 78%
-            height: 14%
-            radius: 20
-            bg_color: 0x1A2030
-            border_width: 0
-            pad_all: 10
-            clickable: false
-            widgets:
-              - label:
-                  align: LEFT_MID
-                  text: "Used today"
-                  text_font: font_lbl_s
-                  text_color: col_text_lbl
-              - label:
-                  id: lbl_energy_today
-                  align: RIGHT_MID
-                  text: "--"
-                  text_font: font_val
-                  text_color: 0xA7E3BB

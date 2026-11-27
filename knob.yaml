@@ -20,17 +20,14 @@ substitutions:
   light_entity: light.spots_woonkamer
   todo_entity: todo.to_do
   alarm_entity: alarm_control_panel.alarmo
-  camera_entity: camera.front_door
+  camera_entity: camera.deurbel_vloeiend
   camera_snapshot_url: http://homeassistant.local:8123/api/camera_proxy/${camera_entity}
   camera_auth_header: ""
-  energy_price_entity: sensor.energy_price
-  energy_usage_entity: sensor.energy_usage
-  energy_usage_today_entity: sensor.energy_usage_today
+  calendar_entities: calendar.jorisjbr_gmail_com,calendar.werk_joris,calendar.gezin,calendar.ess_shifts,calendar.dar_afvalkalender,calendar.parcel,calendar.formula_1
+  energy_price_entity: sensor.zonneplan_herveld_current_electricity_tariff
+  energy_usage_entity: sensor.energy_grid_electricity_meter_energieverbruik_electricity_meter_energieproductie_net_power
   energy_currency: "€"
-  energy_usage_unit: "kW"
-  energy_today_unit: "kWh"
-  #calendar_entity: ?
-  #energy_page: ?
+  energy_usage_unit: "w"
 
 # Hardware specific?
 esphome:
@@ -69,6 +66,7 @@ esphome:
 esp32:
   board: esp32-s3-devkitc-1
   framework:
+    version: latest
     type: esp-idf
     sdkconfig_options:
       CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
@@ -141,7 +139,7 @@ lvgl:
   buffer_size: "12%"
   color_depth: 16
   bg_color: col_bg
-  default_font: font_lbl
+  default_font: font_l
   on_focus:
     then:
       - lvgl.resume:
@@ -152,7 +150,7 @@ lvgl:
             condition:
               lambda: 'return id(alarm_state) != "triggered";'
             then:
-              - script.execute: show_idle_clock
+              - script.execute: dim_clock
               - light.turn_on:
                   id: display_backlight
                   brightness: 50%

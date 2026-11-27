@@ -3,13 +3,13 @@ font:
       type: web
       url: https://raw.githubusercontent.com/Templarian/MaterialDesign-Webfont/master/fonts/materialdesignicons-webfont.ttf
     id: font_alarm_icons
-    size: 96
+    size: 132
     bpp: 4
-    glyphs: "\U000F0594\U000F068A\U000F088E\U000F099D\U000F099F"
+    glyphs: "\U000F0594\U000F068A\U000F088E\U000F099D\U000F099E\U000F0ECC"
 
   - file: "gfonts://DM+Sans"
     id: font_alarm_button
-    size: 16
+    size: 48
     bpp: 4
     glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
 
@@ -59,6 +59,9 @@ globals:
   - id: in_alarm
     type: bool
     initial_value: 'false'
+  - id: alarm_blink
+    type: bool
+    initial_value: 'true'
 
 text_sensor:
   - platform: homeassistant
@@ -104,71 +107,116 @@ text_sensor:
           if (!selected_supported) id(alarm_selection) = 0;
       - script.execute: refresh_alarm_selection
 
+interval:
+  interval: 500ms
+  if: 
+    condition:
+      lambda: 'return id(alarm_state) == "triggered" || id(alarm_state) === "pending" || id(alarm_state) === "arming";'
+    then:
+      - lambda: |-
+          id(alarm_blink) = !id(alarm_blink);
+          lv_opa_t opa = id(alarm_blink) ? LV_OPA_COVER : LV_OPA_30;
+          lv_obj_set_style_text_opa(id(lbl_alarm_state_icon), opa, LV_PART_MAIN);
+          lv_obj_set_style_text_opa(id(lbl_alarm_state), opa, LV_PART_MAIN);
+          // id(refresh_alarm_state).execute();
+
 script:
   - id: refresh_alarm_state
     then:
       - lambda: |-
           const std::string state = id(alarm_state);
+          const char *setting = "UNKNOWN";
           const char *icon = "\U000F068A";
           uint32_t color = 0x94A3B8;
           if (state == "disarmed") {
-            icon = "\U000F099F";
+            setting = "DISARMED";
+            icon = "\U000F099E";
             color = 0x55C89A;
-          } else if (state == "triggered" || state == "pending") {
-            icon = "\U000F088E";
+          } else if (state == "triggered") {
+            setting = "TRIGGERED";
+            icon = "\U000F0ECC";
+            color = 0xE65353;
+          } else if (state == "pending") {
+            setting = "PENDING";
+            icon = "\U000F0ECC";
+            color = 0xE65353;
+          } else if (state == "arming") {
+            setting = "ARMING";
+            icon = "\U000F0ECC";
             color = 0xE65353;
           } else if (state == "armed_home") {
+            setting = "ARMED HOME";
             icon = "\U000F068A";
             color = 0x55C89A;
           } else if (state == "armed_night") {
+            setting = "ARMED NIGHT";
             icon = "\U000F0594";
             color = 0xD4B76A;
-          } else if (state == "armed_away" || state == "arming") {
+          } else if (state == "armed_away") {
+            setting = "ARMED AWAY";
             icon = "\U000F099D";
             color = 0x5DABDD;
           } else if (state == "armed_vacation" || state == "armed_custom_bypass") {
+            setting = "ARMED VACATION";
             icon = "\U000F099D";
             color = 0x5DABDD;
           }
-          lv_label_set_text(id(lbl_alarm_state), icon);
-          lv_obj_set_style_text_color(id(lbl_alarm_state), lv_color_hex(color), LV_PART_MAIN);
-          id(refresh_alarm_selection).execute();
+
+          //Hide selector label
+          lv_obj_add_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
+          //Update state label and icon
+          lv_label_set_text(id(lbl_alarm_state_icon), icon);
+          lv_label_set_text(id(lbl_alarm_state), setting);
+          lv_obj_set_style_text_color(id(lbl_alarm_state_icon), lv_color_hex(color), LV_PART_MAIN);
           if (id(in_menu)) id(refresh_menu).execute();
 
   - id: refresh_alarm_selection
     then:
       - lambda: |-
           const int selection = id(alarm_selection);
-          const char *icon = "\U000F099F";
+          const char *icon = "";
+          const char *setting = "";
           uint32_t color = 0x55C89A;
-          if (selection == 1) {
+          if (selection == 0) {
+            setting = "DISARMED";
+            icon = "\U000F099E";
+            color = 0x55C89A;
+          }
+          else if (selection == 1) {
+            setting = "HOME";
             icon = "\U000F068A";
             color = 0x55C89A;
           } else if (selection == 2) {
+            setting = "AWAY";
             icon = "\U000F099D";
             color = 0x5DABDD;
           } else if (selection == 4) {
+            setting = "NIGHT";
             icon = "\U000F0594";
             color = 0xD4B76A;
           } else if (selection == 16 || selection == 32) {
+            setting = "VACATION";
             icon = "\U000F099D";
             color = 0x95703A;
           }
-          lv_label_set_text(id(lbl_alarm_selection), icon);
-          lv_obj_set_style_text_color(id(lbl_alarm_selection), lv_color_hex(color), LV_PART_MAIN);
+          //Show selector label and update text and icon
+          lv_obj_clear_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
+          lv_label_set_text(id(lbl_alarm_selection), setting);
+          lv_label_set_text(id(lbl_alarm_state_icon), icon);
+          lv_obj_set_style_text_color(id(lbl_alarm_state_icon), lv_color_hex(color), LV_PART_MAIN);
           lv_obj_t *pin_widgets[] = {
             id(lbl_alarm_pin), id(btn_alarm_digit_1), id(btn_alarm_digit_2),
             id(btn_alarm_digit_3), id(btn_alarm_digit_4), id(btn_alarm_digit_5),
             id(btn_alarm_digit_6), id(btn_alarm_digit_7), id(btn_alarm_digit_8),
             id(btn_alarm_digit_9), id(btn_alarm_clear), id(btn_alarm_digit_0),
-            id(btn_alarm_delete), id(lbl_alarm_submit)
+            id(btn_alarm_delete)
           };
           for (lv_obj_t *widget : pin_widgets) {
             if (id(alarm_pin_entry)) lv_obj_clear_flag(widget, LV_OBJ_FLAG_HIDDEN);
             else lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
           }
-          if (id(alarm_pin_entry)) lv_obj_add_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
-          else lv_obj_clear_flag(id(lbl_alarm_selection), LV_OBJ_FLAG_HIDDEN);
+          if (id(alarm_pin_entry)) lv_obj_add_flag(id(lbl_alarm_state_icon), LV_OBJ_FLAG_HIDDEN);
+          else lv_obj_clear_flag(id(lbl_alarm_state_icon), LV_OBJ_FLAG_HIDDEN);
 
   - id: animate_alarm_selection
     parameters:
@@ -178,7 +226,7 @@ script:
       - lambda: |-
           static lv_anim_t animation;
           lv_anim_init(&animation);
-          lv_anim_set_var(&animation, id(lbl_alarm_selection));
+          lv_anim_set_var(&animation, id(lbl_alarm_state_icon));
           lv_anim_set_values(&animation, 0, direction * 3600);
           lv_anim_set_time(&animation, 260);
           lv_anim_set_path_cb(&animation, lv_anim_path_ease_in_out);
@@ -320,6 +368,7 @@ script:
                   - globals.set:
                       id: alarm_pin_entry
                       value: 'true'
+                  # - script.execute: refresh_alarm_state
                   - script.execute: refresh_alarm_selection
                   - script.execute: refresh_alarm_pin
                 else:
@@ -391,6 +440,7 @@ script:
       - globals.set:
           id: alarm_pin_entry
           value: 'false'
+      - script.execute: refresh_alarm_state
       - script.execute: refresh_alarm_selection
 
 lvgl:
@@ -404,7 +454,7 @@ lvgl:
             align: TOP_MID
             y: 3%
             text: "ALARM"
-            text_font: font_lbl
+            text_font: font_l
             text_color: col_alarm_text
 
         - obj:
@@ -427,19 +477,28 @@ lvgl:
                   text_color: col_alarm_dim
 
         - label:
-            id: lbl_alarm_state
+            id: lbl_alarm_state_icon
             align: CENTER
-            y: -34%
+            y: 0%
             text: "\U000F068A"
             text_font: font_alarm_icons
             text_color: col_alarm_dim
 
         - label:
+            id: lbl_alarm_state
+            align: CENTER
+            y: -34%
+            text: ""
+            text_font: font_alarm_button
+            text_color: col_alarm_dim
+
+        - label:
             id: lbl_alarm_selection
             align: CENTER
-            y: -6%
-            text: "\U000F099F"
-            text_font: font_alarm_icons
+            hidden: true
+            y: 34%
+            text: ""
+            text_font: font_alarm_button
             text_color: col_alarm_green
 
         - label:
@@ -454,11 +513,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_1
             align: CENTER
-            x: -18%
+            x: -27%
             y: -17%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -479,8 +538,8 @@ lvgl:
             align: CENTER
             y: -17%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -499,11 +558,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_3
             align: CENTER
-            x: 18%
+            x: 27%
             y: -17%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -522,11 +581,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_4
             align: CENTER
-            x: -18%
-            y: -8%
+            x: -27%
+            y: -4%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -545,10 +604,10 @@ lvgl:
         - obj:
             id: btn_alarm_digit_5
             align: CENTER
-            y: -8%
+            y: -4%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -567,11 +626,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_6
             align: CENTER
-            x: 18%
-            y: -8%
+            x: 27%
+            y: -4%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -590,11 +649,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_7
             align: CENTER
-            x: -18%
-            y: 1%
+            x: -27%
+            y: 9%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -613,10 +672,10 @@ lvgl:
         - obj:
             id: btn_alarm_digit_8
             align: CENTER
-            y: 1%
+            y: 9%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -635,11 +694,11 @@ lvgl:
         - obj:
             id: btn_alarm_digit_9
             align: CENTER
-            x: 18%
-            y: 1%
+            x: 27%
+            y: 9%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -658,11 +717,11 @@ lvgl:
         - obj:
             id: btn_alarm_clear
             align: CENTER
-            x: -18%
-            y: 10%
+            x: -27%
+            y: 22%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -679,10 +738,10 @@ lvgl:
         - obj:
             id: btn_alarm_digit_0
             align: CENTER
-            y: 10%
+            y: 22%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -701,11 +760,11 @@ lvgl:
         - obj:
             id: btn_alarm_delete
             align: CENTER
-            x: 18%
-            y: 10%
+            x: 27%
+            y: 22%
             hidden: true
-            width: 16%
-            height: 8%
+            width: 24%
+            height: 12%
             radius: 8
             bg_color: col_alarm_surface
             border_width: 0
@@ -718,12 +777,3 @@ lvgl:
                   text: "DEL"
                   text_font: font_alarm_button
                   text_color: col_alarm_dim
-
-        - label:
-            id: lbl_alarm_submit
-            align: CENTER
-            y: 22%
-            hidden: true
-            text: "PRESS DIAL TO DISARM"
-            text_font: font_alarm_button
-            text_color: col_alarm_dim
