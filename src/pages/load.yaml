@@ -182,12 +182,6 @@ script:
           then:
             - globals.set: {id: button_debounce, value: 'true'}
             - script.execute: switch_forecast
-      - if:
-          condition:
-            lambda: 'return id(in_camera) && !id(in_menu) && !id(button_debounce);'
-          then:
-            - globals.set: {id: button_debounce, value: 'true'}
-            - script.execute: refresh_camera
       - delay: 250ms
       - globals.set: {id: button_debounce, value: 'false'}
 

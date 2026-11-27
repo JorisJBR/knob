@@ -108,17 +108,18 @@ text_sensor:
       - script.execute: refresh_alarm_selection
 
 interval:
-  interval: 500ms
-  if: 
-    condition:
-      lambda: 'return id(alarm_state) == "triggered" || id(alarm_state) === "pending" || id(alarm_state) === "arming";'
+  - interval: 500ms
     then:
-      - lambda: |-
-          id(alarm_blink) = !id(alarm_blink);
-          lv_opa_t opa = id(alarm_blink) ? LV_OPA_COVER : LV_OPA_30;
-          lv_obj_set_style_text_opa(id(lbl_alarm_state_icon), opa, LV_PART_MAIN);
-          lv_obj_set_style_text_opa(id(lbl_alarm_state), opa, LV_PART_MAIN);
-          // id(refresh_alarm_state).execute();
+      - if: 
+          condition: 
+            - lambda: 'return id(alarm_state) == "triggered" || id(alarm_state) === "pending" || id(alarm_state) === "arming";'
+          then:
+            - lambda: |-
+                id(alarm_blink) = !id(alarm_blink);
+                lv_opa_t opa = id(alarm_blink) ? LV_OPA_COVER : LV_OPA_30;
+                lv_obj_set_style_text_opa(id(lbl_alarm_state_icon), opa, LV_PART_MAIN);
+                lv_obj_set_style_text_opa(id(lbl_alarm_state), opa, LV_PART_MAIN);
+                // id(refresh_alarm_state).execute();
 
 script:
   - id: refresh_alarm_state
