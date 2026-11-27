@@ -19,28 +19,29 @@ text_sensor:
 
 http_request:
   id: camera_http_request
-  timeout: 10s
+  timeout: 1s
 
-online_image:
-  - id: camera_snapshot
+image:
+  - platform: online_image
+    id: camera_snapshot
     http_request_id: camera_http_request
     url: ${camera_snapshot_url}
     format: JPEG
     type: RGB565
-    resize: 400x400
-    update_interval: never
+    update_interval: 1s
     request_headers:
       Authorization: !lambda 'return id(camera_auth_header).empty() ? std::string("") : std::string("Bearer ") + id(camera_auth_header);'
     on_download_finished:
       - lambda: |-
           id(camera_last_refresh) = "Snapshot ready";
-          lv_label_set_text(id(lbl_camera_status), "Snapshot ready");
+          lv_obj_add_flag(id(lbl_camera_status), LV_OBJ_FLAG_HIDDEN);
       - lvgl.widget.redraw: img_camera_snapshot
     on_error:
       - lambda: |-
           id(camera_last_refresh) = "Snapshot unavailable";
           lv_label_set_text(id(lbl_camera_status), "Snapshot unavailable");
-
+          lv_obj_clear_flag(id(lbl_camera_status), LV_OBJ_FLAG_HIDDEN);
+      - lvgl.widget.redraw: img_camera_snapshot
 
 script:
   - id: open_camera
@@ -64,75 +65,31 @@ script:
       - globals.set: {id: in_camera, value: 'false'}
       - script.execute: open_menu
 
-  - id: refresh_camera
-    then:
-      - if:
-          condition:
-            lambda: 'return id(in_camera);'
-          then:
-            - lvgl.label.update:
-                id: lbl_camera_status
-                text: "Refreshing snapshot"
-            - online_image.set_url:
-                id: camera_snapshot
-                url: ${camera_snapshot_url}
-                update: true
-
-interval:
-  - interval: 10s
-    then:
-      - script.execute: refresh_camera
-
 lvgl:
   pages:
     - id: page_camera
       bg_color: col_bg
       bg_opa: COVER
       scrollbar_mode: "OFF"
-      on_load:
-        - lambda: |-
-            lv_label_set_text(
-              id(lbl_camera_title),
-              id(ha_camera_name).state.empty()
-                ? "Camera"
-                : id(ha_camera_name).state.c_str()
-            );
       widgets:
         - obj:
             align: CENTER
-            width: 92%
-            height: 92%
+            width: 100%
+            height: 100%
             radius: 50%
             clip_corner: true
             bg_color: 0x101623
             border_width: 0
             pad_all: 0
             scrollbar_mode: "OFF"
-            clickable: true
-            on_press:
-              - script.execute: refresh_camera
             widgets:
               - image:
                   id: img_camera_snapshot
                   align: CENTER
                   src: camera_snapshot
                   antialias: true
-              - label:
-                  id: lbl_camera_title
-                  align: TOP_MID
-                  y: 7%
-                  width: 80%
-                  text_align: CENTER
-                  text_font: font_l
-                  text_color: 0xFFFFFF
-                  text: "Camera"
-                  bg_opa: COVER
-                  bg_color: 0x101623
-                  radius: 12
-                  pad_left: 12
-                  pad_right: 12
-                  pad_top: 4
-                  pad_bottom: 4
+                  width: 100%
+                  height: 100%
               - label:
                   id: lbl_camera_status
                   align: BOTTOM_MID

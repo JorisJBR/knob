@@ -21,8 +21,8 @@ substitutions:
   todo_entity: todo.to_do
   alarm_entity: alarm_control_panel.alarmo
   camera_entity: camera.deurbel_vloeiend
+  camera_auth_header: !secret camera_auth
   camera_snapshot_url: http://homeassistant.local:8123/api/camera_proxy/${camera_entity}
-  camera_auth_header: ""
   calendar_entities: calendar.jorisjbr_gmail_com,calendar.werk_joris,calendar.gezin,calendar.ess_shifts,calendar.dar_afvalkalender,calendar.parcel,calendar.formula_1
   energy_price_entity: sensor.zonneplan_herveld_current_electricity_tariff
   energy_usage_entity: sensor.energy_grid_electricity_meter_energieverbruik_electricity_meter_energieproductie_net_power
