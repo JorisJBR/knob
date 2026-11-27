@@ -125,6 +125,7 @@ script:
           id(active_page).publish_state("Clock");
           if(!id(timer_running) && !id(timer_done)) {
             id(timer_remaining) = 0;
+            id(timer_total) = 0;
           }
           lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);
