@@ -6,61 +6,17 @@ font:
     glyphs: "0123456789: "
 
   - file: "gfonts://DM+Sans"
-    id: font_val
+    id: font_l
     size: 36
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .-%°/"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,-%°/"
 
   - file: "gfonts://DM+Sans"
-    id: font_val_s
+    id: font_s
     size: 30
     bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .:-%°/"
+    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,_:-%°/"
 
-  - file:
-      family: DM+Sans
-      weight: 700
-      type: gfonts
-    id: font_lbl
-    size: 22
-    bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
-
-  - file:
-      family: DM+Sans
-      weight: 700
-      type: gfonts
-    id: font_lbl_s
-    size: 18
-    bpp: 4
-    glyphs: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ."
-
-  - file:
-      family: Share Tech Mono
-      weight: 400
-      type: gfonts
-    id: font_timer_time
-    size: 64
-    bpp: 4
-    glyphs: "0123456789:"
-
-  - file:
-      family: Share Tech Mono
-      weight: 400
-      type: gfonts
-    id: font_timer_time_small
-    size: 36
-    bpp: 4
-    glyphs: "0123456789:"
-
-  - file:
-      family: DM+Sans
-      weight: 600
-      type: gfonts
-    id: font_timer_btn
-    size: 16
-    bpp: 4
-    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ "
 
 color:
   - id: col_ring_progress
@@ -127,9 +83,7 @@ script:
       - lvgl.page.show:
           id: page_clock
           animation: MOVE_LEFT
-      - lambda: lv_obj_clear_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
-      - lambda: lv_obj_clear_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);
-      - script.execute: refresh_clock_timer
+      - script.execute: wake_clock
       - script.execute: update_date
 
   - id: update_date
@@ -156,7 +110,7 @@ script:
             lv_label_set_text(id(lbl_clock_date), date_buf);
           }
 
-  - id: show_idle_clock
+  - id: dim_clock
     then:
       - lambda: |-
           id(in_menu) = false;
@@ -169,10 +123,22 @@ script:
           id(in_weather) = false;
           id(in_alarm) = false;
           id(active_page).publish_state("Clock");
-      - lambda: 'lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
-      - lambda: 'lv_obj_add_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);'
+          if(!id(timer_running) && !id(timer_done)) {
+            id(timer_remaining) = 0;
+            id(timer_total) = 0;
+          }
+          lv_obj_add_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);
+
       - lvgl.page.show: page_clock
       - script.execute: update_clock
+
+  - id: wake_clock
+    then:
+      - lambda: 'lv_obj_clear_flag(id(arc_seconds), LV_OBJ_FLAG_HIDDEN);'
+      - lambda: 'lv_obj_clear_flag(id(lbl_clock_date), LV_OBJ_FLAG_HIDDEN);'
+      - script.execute: update_clock
+      - script.execute: refresh_clock_timer
 
   - id: close_clock
     then:
@@ -451,7 +417,7 @@ lvgl:
             int screen_width = lv_obj_get_width(lv_scr_act());
             lv_obj_set_style_text_font(
               id(lbl_clock),
-              screen_width >= 400 ? id(font_clock) : id(font_val),
+              screen_width >= 400 ? id(font_clock) : id(font_l),
               0
             );
       widgets:
@@ -514,7 +480,7 @@ lvgl:
             align: CENTER
             y: -20%
             width: 82%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_lbl
             text_align: CENTER
             text: "FRI 20 NOV"
@@ -533,7 +499,7 @@ lvgl:
             y: 20%
             hidden: true
             width: 82%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_ring_progress
             text_align: CENTER
             text: "READY 05:00"

@@ -1,0 +1,131 @@
+globals:
+  - id: in_energy
+    type: bool
+    initial_value: 'false'
+  - id: energy_price
+    type: float
+    initial_value: 'NAN'
+  - id: energy_usage
+    type: float
+    initial_value: 'NAN'
+
+font:
+  - file: "gfonts://DM+Sans"
+    id: font_energy_lbl
+    size: 24
+    bpp: 4
+    glyphs: >-
+      !"#$%&'()*+,-./ 0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~°€
+
+script:
+  - id: open_energy
+    then:
+      - globals.set: {id: in_energy, value: 'true'}
+      - globals.set: {id: in_menu, value: 'false'}
+      - lambda: 'id(active_page).publish_state("Energy");'
+      - lvgl.page.show:
+          id: page_energy
+          animation: MOVE_LEFT
+      - lambda: |-
+          char value[32];
+          if (isnan(id(energy_price))) {
+            lv_label_set_text(id(lbl_energy_price), "--");
+          } else {
+            snprintf(value, sizeof(value), "%.2f ${energy_currency}", id(energy_price));
+            lv_label_set_text(id(lbl_energy_price), value);
+          }
+          if (isnan(id(energy_usage))) {
+            lv_label_set_text(id(lbl_energy_usage), "--");
+          } else {
+            snprintf(value, sizeof(value), "%.2f ${energy_usage_unit}", id(energy_usage));
+            lv_label_set_text(id(lbl_energy_usage), value);
+          }
+
+sensor:
+  - platform: homeassistant
+    id: ha_energy_price
+    entity_id: ${energy_price_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          id(energy_price) = x;
+          if (id(in_energy)) {
+            char value[32];
+            snprintf(value, sizeof(value), "%.3f ${energy_currency}", x);
+            lv_label_set_text(id(lbl_energy_price), value);
+          }
+
+  - platform: homeassistant
+    id: ha_energy_usage
+    entity_id: ${energy_usage_entity}
+    internal: true
+    on_value:
+      - lambda: |-
+          id(energy_usage) = x;
+          if (id(in_energy)) {
+            char value[32];
+            snprintf(value, sizeof(value), "%.2f ${energy_usage_unit}", x);
+            lv_label_set_text(id(lbl_energy_usage), value);
+          }
+
+lvgl:
+  pages:
+    - id: page_energy
+      bg_color: col_bg
+      bg_opa: COVER
+      scrollbar_mode: "OFF"
+      widgets:
+        - label:
+            align: TOP_MID
+            y: 6%
+            text: "ENERGY"
+            text_font: font_l
+            text_color: col_text_lbl
+
+        - obj:
+            align: CENTER
+            y: -18%
+            width: 78%
+            height: 24%
+            radius: 24
+            bg_color: 0x1A2030
+            border_width: 0
+            pad_all: 12
+            clickable: false
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Current price"
+                  text_font: font_s
+                  text_color: col_text_lbl
+              - label:
+                  id: lbl_energy_price
+                  align: LEFT_MID
+                  y: 12
+                  text: "--"
+                  text_font: font_energy_lbl
+                  text_color: 0xFFC76A
+
+        - obj:
+            align: CENTER
+            y: 9%
+            width: 78%
+            height: 24%
+            radius: 24
+            bg_color: 0x1A2030
+            border_width: 0
+            pad_all: 12
+            clickable: false
+            widgets:
+              - label:
+                  align: TOP_LEFT
+                  text: "Live usage"
+                  text_font: font_s
+                  text_color: col_text_lbl
+              - label:
+                  id: lbl_energy_usage
+                  align: LEFT_MID
+                  y: 12
+                  text: "--"
+                  text_font: font_energy_lbl
+                  text_color: 0x79D7FF

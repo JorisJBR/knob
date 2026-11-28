@@ -310,14 +310,14 @@ lvgl:
             align: TOP_MID
             y: 4%
             text: "HOURLY FORECAST"
-            text_font: font_lbl
+            text_font: font_l
             text_color: col_text_lbl
 
         - label:
             id: lbl_forecast_datetime
             align: TOP_MID
             y: 10%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "--"
 
@@ -344,7 +344,7 @@ lvgl:
             align: CENTER
             y: -1%
             width: 82%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_wind
             text_align: CENTER
             text: "Loading forecast"
@@ -363,7 +363,7 @@ lvgl:
             align: CENTER
             x: -31%
             y: 10%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "LOW"
 
@@ -372,7 +372,7 @@ lvgl:
             align: CENTER
             x: -31%
             y: 17%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_temp
             text: "--"
 
@@ -380,7 +380,7 @@ lvgl:
             align: CENTER
             x: 0
             y: 10%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "HUMIDITY"
 
@@ -389,7 +389,7 @@ lvgl:
             align: CENTER
             x: 0
             y: 17%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_hum
             text: "--"
 
@@ -397,7 +397,7 @@ lvgl:
             align: CENTER
             x: 31%
             y: 10%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "PRESSURE"
 
@@ -406,7 +406,7 @@ lvgl:
             align: CENTER
             x: 31%
             y: 17%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_pres
             text: "--"
 
@@ -424,7 +424,7 @@ lvgl:
             align: CENTER
             x: -28%
             y: 32%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "WIND"
 
@@ -433,7 +433,7 @@ lvgl:
             align: CENTER
             x: -28%
             y: 39%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_wind
             text: "--"
 
@@ -441,7 +441,7 @@ lvgl:
             align: CENTER
             x: 0
             y: 32%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "RAIN"
 
@@ -450,7 +450,7 @@ lvgl:
             align: CENTER
             x: 0
             y: 39%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_hum
             text: "--"
 
@@ -458,7 +458,7 @@ lvgl:
             align: CENTER
             x: 28%
             y: 32%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "RAIN %"
 
@@ -467,7 +467,7 @@ lvgl:
             align: CENTER
             x: 28%
             y: 39%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_hum
             text: "--"
 
@@ -475,7 +475,7 @@ lvgl:
             align: CENTER
             x: -25%
             y: 47%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "DIRECTION"
 
@@ -484,7 +484,7 @@ lvgl:
             align: CENTER
             x: -25%
             y: 54%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_wind
             text: "--"
 
@@ -492,7 +492,7 @@ lvgl:
             align: CENTER
             x: 25%
             y: 47%
-            text_font: font_lbl_s
+            text_font: font_s
             text_color: col_text_lbl
             text: "CLOUD"
 
@@ -501,6 +501,6 @@ lvgl:
             align: CENTER
             x: 25%
             y: 54%
-            text_font: font_val_s
+            text_font: font_s
             text_color: col_text_aqi
             text: "--"
